@@ -86,8 +86,6 @@ class ScannerEngine:
         
         self.notification_manager = NotificationManager(config)
         
-        # Browser automation
-        self.browser_tester = SmartBrowserTester(config)
         
         # Subdomain scanner
         self.subdomain_scanner = SubdomainScanner(self, config)
@@ -219,7 +217,9 @@ class ScannerEngine:
             # Run browser-based tests if enabled
             if self.config.get('advanced', {}).get('enable_javascript_rendering', False):
                 try:
-                    browser_vulns = self.browser_tester.test_browser_sync(url, payloads)
+                    # Instantiate browser tester locally for thread safety
+                    browser_tester = SmartBrowserTester(self.config)
+                    browser_vulns = browser_tester.test_browser_sync(url, payloads)
                     vulnerabilities.extend(browser_vulns)
                 except Exception as e:
                     logger.debug(f"Browser testing failed for {url}: {e}")

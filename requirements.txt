@@ -19,8 +19,7 @@ selenium>=4.15.0
 webdriver-manager>=4.0.0
 httpx>=0.26.0
 playwright>=1.40.0  # Browser automation for smart testing
-browser-use>=0.1.0  # AI-powered browser automation (https://browser-use.com)
-langchain-openai>=0.1.0  # Required for Browser Use AI agent
+
 
 # DNS & Network
 dnspython>=2.4.0

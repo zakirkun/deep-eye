@@ -770,12 +770,12 @@ class ReportGenerator:
                 <div class="recon-data">
                     {% if reconnaissance.osint.emails %}
                     <p><strong>Emails Found:</strong> {{ reconnaissance.osint.emails|length }}</p>
-                    <div class="code">{{ reconnaissance.osint.emails|join(', ') }}</div>
+                    <pre class="code">{{ reconnaissance.osint.emails|join(', ') }}</pre>
                     {% endif %}
 
                     {% if reconnaissance.osint.subdomains %}
                     <p><strong>Subdomains Discovered:</strong> {{ reconnaissance.osint.subdomains|length }}</p>
-                    <div class="code">{{ reconnaissance.osint.subdomains[:10]|join(', ') }}</div>
+                    <pre class="code">{{ reconnaissance.osint.subdomains[:10]|join(', ') }}</pre>
                     {% endif %}
 
                     {% if reconnaissance.osint.github_leaks %}
@@ -784,7 +784,7 @@ class ReportGenerator:
 
                     {% if reconnaissance.osint.breaches %}
                     <p><strong>Breach Database Results:</strong></p>
-                    <div class="code">{{ reconnaissance.osint.breaches|join(', ') }}</div>
+                    <pre class="code">{{ reconnaissance.osint.breaches|join(', ') }}</pre>
                     {% endif %}
                 </div>
             </div>
@@ -859,7 +859,7 @@ class ReportGenerator:
                                         {% if vuln.payload %}
                                         <div class="evidence-box">
                                             <h4>💉 Payload Used:</h4>
-                                            <div class="code">{{ vuln.payload }}</div>
+                                            <pre class="code">{{ vuln.payload }}</pre>
                                         </div>
                                         {% endif %}
                                         <div class="evidence-box">
