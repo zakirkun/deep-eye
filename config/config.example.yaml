@@ -41,7 +41,18 @@ ai_providers:
     model: "gemini-1.5-flash"  # Options: gemini-1.5-pro, gemini-1.5-flash, gemini-pro
     temperature: 0.7
     max_tokens: 2000
+    max_tokens: 2000
     timeout: 30
+
+  openrouter:
+    enabled: false
+    api_key: "sk-or-your-openrouter-api-key-here"
+    model: "openai/gpt-3.5-turbo"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+    site_url: "https://github.com/zakirkun/deep-eye"
+    site_name: "Deep Eye"
 
 # Scanner Settings
 scanner:
