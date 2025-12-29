@@ -26,6 +26,7 @@ deep-eye/
 │   ├── __init__.py
 │   ├── provider_manager.py    # Provider management
 │   ├── openai_provider.py     # OpenAI/GPT-4 integration
+│   ├── openrouter_provider.py # OpenRouter integration
 │   ├── claude_provider.py     # Anthropic Claude integration
 │   ├── grok_provider.py       # xAI Grok integration
 │   └── ollama_provider.py     # OLLAMA local LLM integration

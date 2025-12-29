@@ -43,6 +43,15 @@ ai_providers:
     max_tokens: 2000
     timeout: 60
 
+  openrouter:
+    enabled: true
+    api_key: "sk-or-v1-your-openrouter-api-key-here"
+    base_url: "https://openrouter.ai/api/v1"
+    model: "openai/gpt-4o"  
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
 # Scanner Settings
 scanner:
   # Target configuration
@@ -64,7 +73,7 @@ scanner:
   quick_scan: false    # Quick scan (basic tests only)
   
   # AI Provider selection
-  ai_provider: "openai"  # Options: openai, claude, grok, ollama
+  ai_provider: "openai"  # Options: openai, claude, grok, ollama, mistral, openrouter
   
   # Network settings
   proxy: ""  # Proxy URL (e.g., http://127.0.0.1:8080)

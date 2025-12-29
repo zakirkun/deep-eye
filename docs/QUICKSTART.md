@@ -81,6 +81,17 @@ ai_providers:
     model: "llama2"
 ```
 
+#### OpenRouter
+1. Get API key from https://openrouter.ai/settings/keys
+2. Add to config.yaml:
+```yaml
+ai_providers:
+  openrouter:
+    enabled: true
+    api_key: "sk-your-key-here"
+    model: "openai/gpt-4o"
+```
+
 ## Command Line Options
 
 | Option | Description | Example |
