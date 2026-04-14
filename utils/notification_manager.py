@@ -4,6 +4,7 @@ Sends notifications via Email, Slack, and Discord
 """
 
 import json
+import re
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -63,6 +64,35 @@ class NotificationManager:
         
         return success
     
+    @staticmethod
+    def _sanitize_evidence(evidence: str, max_length: int = 500) -> str:
+        """
+        Sanitize vulnerability evidence before sending to external webhooks.
+
+        Redacts patterns that commonly contain secrets (tokens, session IDs,
+        passwords, API keys, cookies) to prevent accidental data leakage
+        through Slack/Discord/Email notifications.
+        """
+        if not evidence:
+            return ""
+
+        # Redact common secret patterns
+        patterns = [
+            (r'(?i)(bearer\s+)\S+', r'\1**REDACTED**'),
+            (r'(?i)(token|session[_-]?id|api[_-]?key|password|passwd|secret|authorization)[=:]\s*\S+',
+             r'\1=**REDACTED**'),
+            (r'(?i)(set-cookie:\s*)\S+', r'\1**REDACTED**'),
+            (r'(?i)(cookie:\s*)\S+', r'\1**REDACTED**'),
+            # Redact long base64-like strings (potential tokens)
+            (r'[A-Za-z0-9+/=]{40,}', '**REDACTED_TOKEN**'),
+        ]
+
+        sanitized = evidence
+        for pattern, replacement in patterns:
+            sanitized = re.sub(pattern, replacement, sanitized)
+
+        return sanitized[:max_length]
+
     def send_critical_vulnerability(self, vulnerability: Dict, target_url: str) -> bool:
         """
         Send immediate notification for critical vulnerability.
@@ -86,7 +116,7 @@ class NotificationManager:
             'vulnerability_type': vulnerability.get('type', 'Unknown'),
             'severity': vulnerability.get('severity', 'Unknown'),
             'url': vulnerability.get('url', ''),
-            'evidence': vulnerability.get('evidence', ''),
+            'evidence': self._sanitize_evidence(vulnerability.get('evidence', '')),
             'timestamp': datetime.now().isoformat()
         }
         
