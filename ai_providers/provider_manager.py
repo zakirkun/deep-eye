@@ -78,6 +78,15 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenRouter provider: {e}")
 
+        # LM Studio
+        if ai_config.get('lmstudio', {}).get('enabled', False):
+            try:
+                from ai_providers.lmstudio_provider import LMStudioProvider
+                self.providers['lmstudio'] = LMStudioProvider(ai_config['lmstudio'])
+                logger.info("LM Studio provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LM Studio provider: {e}")
+
     
     def set_provider(self, provider_name: str) -> bool:
         """
