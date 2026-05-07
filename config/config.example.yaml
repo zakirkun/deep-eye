@@ -75,6 +75,12 @@ scanner:
   # AI Provider selection
   ai_provider: "openai"  # Options: openai, claude, grok, ollama, mistral, openrouter
   
+  # Out-of-Band Application Security Testing (OAST) callback URL
+  # IMPORTANT: Set this to a server you control (e.g., Burp Collaborator, interact.sh)
+  # XSS and XXE payloads use this URL to detect out-of-band interactions.
+  # Leaving this empty uses a safe placeholder that won't leak data to third parties.
+  oast_callback_url: ""  # e.g., "https://your-id.oastify.com"
+
   # Network settings
   proxy: ""  # Proxy URL (e.g., http://127.0.0.1:8080)
   custom_headers: {}  # Custom headers as key-value pairs

