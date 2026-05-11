@@ -105,6 +105,15 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize LM Studio provider: {e}")
 
+        # LiteLLM
+        if ai_config.get('litellm', {}).get('enabled', False):
+            try:
+                from ai_providers.litellm_provider import LiteLLMProvider
+                self.providers['litellm'] = LiteLLMProvider(ai_config['litellm'])
+                logger.info("LiteLLM provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LiteLLM provider: {e}")
+
     
     def set_provider(self, provider_name: str) -> bool:
         """
