@@ -10,6 +10,7 @@ anthropic>=0.18.0
 ollama>=0.1.6
 mistralai>=1.0.0
 google-genai>=0.8.0
+litellm>=1.60.0,<2.0.0
 
 # Async Support
 aiohttp>=3.9.0
