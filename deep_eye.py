@@ -39,7 +39,7 @@ BANNER = """
 ║  ⠀⠈⠉⠉⠋⠉⠉⠋⠉⠉⠉⠋⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠋⡟⠉⠉⡿⠋⠋⠋⠉⠉⠁  
 ║                                                                               
 ║                  Advanced AI-Driven Penetration Testing Tool                 
-║                      Version 1.3.0 - Code Name (Hestia)                                  ║
+║                      Version 1.4.0 - Code Name (Hanzou)                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -170,6 +170,10 @@ def main():
         cookies = scanner_config.get('cookies', {})
         verbose = args.verbose
         
+        # Experimental features
+        experimental_config = config.get('experimental', {})
+        scan_subdomains = experimental_config.get('enable_subdomain_scanning', False)
+        
         # Initialize AI Provider
         console.print(f"[bold blue]Initializing AI Provider: {ai_provider}[/bold blue]")
         ai_manager = AIProviderManager(config)
@@ -191,13 +195,22 @@ def main():
         
         # Display scan configuration
         scan_mode = 'Full Scan' if full_scan else 'Quick Scan' if quick_scan else 'Standard Scan'
-        scan_info = Panel(
-            f"""[bold]Target:[/bold] {target_url}
+        
+        config_text = f"""[bold]Target:[/bold] {target_url}
 [bold]Depth:[/bold] {depth}
 [bold]Threads:[/bold] {threads}
 [bold]AI Provider:[/bold] {ai_provider}
 [bold]Scan Mode:[/bold] {scan_mode}
-[bold]Reconnaissance:[/bold] {'Enabled' if enable_recon else 'Disabled'}""",
+[bold]Reconnaissance:[/bold] {'Enabled' if enable_recon else 'Disabled'}"""
+        
+        if scan_subdomains:
+            config_text += f"\n[bold]Subdomain Scanning:[/bold] [yellow]Enabled (Experimental)[/yellow]"
+        
+        if experimental_config.get('enable_cve_matching', False):
+            config_text += f"\n[bold]CVE Matching:[/bold] [yellow]Enabled (Experimental)[/yellow]"
+        
+        scan_info = Panel(
+            config_text,
             title="Scan Configuration",
             border_style="green"
         )
@@ -209,7 +222,8 @@ def main():
         results = scanner.scan(
             enable_recon=enable_recon,
             full_scan=full_scan,
-            quick_scan=quick_scan
+            quick_scan=quick_scan,
+            scan_subdomains=scan_subdomains
         )
         
         # Generate report (from config)
@@ -259,6 +273,15 @@ def main():
             border_style="cyan"
         )
         console.print("\n", summary)
+        
+        # Display experimental features info if enabled
+        if scan_subdomains or experimental_config.get('enable_cve_matching', False):
+            console.print("\n[bold yellow]ℹ️  Experimental Features Active:[/bold yellow]")
+            if scan_subdomains:
+                subdomain_count = results.get('subdomain_scan', {}).get('subdomains_found', 0)
+                console.print(f"  • Subdomain Scanning: {subdomain_count} subdomains discovered and scanned")
+            if experimental_config.get('enable_cve_matching', False):
+                console.print(f"  • CVE Intelligence: Technology-CVE matching enabled")
         
         console.print("\n[bold green]Scan completed successfully![/bold green] 🎉\n")
         

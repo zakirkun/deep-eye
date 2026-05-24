@@ -11,6 +11,7 @@ ollama>=0.1.6
 mistralai>=1.0.0
 google-genai>=0.8.0
 litellm>=1.60.0,<2.0.0
+google-generativeai>=0.3.0  # Google Gemini
 
 # Async Support
 aiohttp>=3.9.0
@@ -21,6 +22,8 @@ aiohttp>=3.9.0
 selenium>=4.15.0
 webdriver-manager>=4.0.0
 httpx>=0.26.0
+playwright>=1.40.0  # Browser automation for smart testing
+
 
 # DNS & Network
 dnspython>=2.4.0

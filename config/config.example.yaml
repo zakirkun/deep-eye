@@ -29,11 +29,30 @@ ai_providers:
     timeout: 30
   
   ollama:
-    enabled: true
+    enabled: false
     base_url: "http://localhost:11434"
     model: "llama2"
     temperature: 0.7
     timeout: 60
+  
+  gemini:
+    enabled: false
+    api_key: "your-gemini-api-key-here"
+    model: "gemini-1.5-flash"  # Options: gemini-1.5-pro, gemini-1.5-flash, gemini-pro
+    temperature: 0.7
+    max_tokens: 2000
+    max_tokens: 2000
+    timeout: 30
+
+  openrouter:
+    enabled: false
+    api_key: "sk-or-your-openrouter-api-key-here"
+    model: "openai/gpt-3.5-turbo"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+    site_url: "https://github.com/zakirkun/deep-eye"
+    site_name: "Deep Eye"
 
   mistral:
     enabled: true
@@ -351,12 +370,26 @@ proxy:
   
 # Advanced Settings
 advanced:
-  enable_javascript_rendering: false
-  screenshot_enabled: false
+  # Browser automation for smart testing (requires: pip install playwright && playwright install chromium)
+  enable_javascript_rendering: false  # Enable browser-based XSS, SQLi, DOM XSS testing
+  screenshot_enabled: false  # Capture screenshots as base64 (requires browser automation)
   custom_dns_servers: []
   exclude_extensions: [".jpg", ".jpeg", ".png", ".gif", ".css", ".js", ".woff", ".woff2", ".ttf"]
   exclude_patterns: []
   max_response_size: 5242880  # 5MB
+
+# Experimental Features (v1.4.0+)
+experimental:
+  # Subdomain scanning
+  enable_subdomain_scanning: false  # Discover and scan all subdomains
+  aggressive_subdomain_enum: true   # Use aggressive subdomain enumeration
+  max_subdomains_to_scan: 50        # Limit number of subdomains to scan
+  
+  # CVE Intelligence
+  enable_cve_matching: false        # Match technologies with CVE database
+  cve_database_path: "data/cve_intelligence.db"
+  auto_update_cve_db: false         # Auto-update CVE database (requires internet)
+  cve_lookback_days: 365            # Days to look back for CVEs
 
 # Plugin System (v1.3.0)
 plugin_manager:

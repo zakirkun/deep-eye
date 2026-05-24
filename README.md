@@ -12,7 +12,7 @@ An advanced AI-driven vulnerability scanner and penetration testing tool that in
 ## 🚀 Features
 
 ### Core Capabilities
-- **Multi-AI Provider Support**: Dynamic switching between OpenAI, Grok, OLLAMA, and Claude
+- **Multi-AI Provider Support**: Dynamic switching between OpenAI, Claude, Grok, OLLAMA, and Gemini
 - **Intelligent Payload Generation**: AI-powered, CVE-aware, context-sensitive payloads
 - **Comprehensive Scanning**: 45+ attack methods with framework-specific tests
 - **Advanced Reconnaissance**: Passive OSINT, DNS enumeration, subdomain discovery
@@ -70,7 +70,20 @@ An advanced AI-driven vulnerability scanner and penetration testing tool that in
 - **Multi-Channel Notifications** (Email, Slack, Discord alerts)
 - **Enhanced OSINT Reporting** (Reconnaissance data in all reports)
 
-And 17+ more attack vectors
+#### v1.4.0 Advanced Features
+- **Browser Use AI Integration** (AI-powered browser automation - 71.8k+ stars)
+- **Smart Browser Testing** (XSS, SQLi, DOM XSS verification with real browser)
+- **Hidden Element Discovery** (AI finds and tests hidden inputs/forms)
+- **Enhanced HTML Reports** (Interactive charts, DataTables, filtering)
+- **Real-Time State Tracking** (Live progress monitoring with phase tracking)
+- **Context-Aware Payloads** (WAF detection, tech stack detection, DB-specific)
+
+#### v1.4.0 Experimental Features
+- **CVE Intelligence System** (Match technologies with real CVE exploits)
+- **Subdomain Discovery & Scanning** (Automatic subdomain enumeration and testing)
+- **CVE-Based Payload Generation** (Real-world exploit patterns from CVE database)
+
+And 45+ total attack vectors
 
 ## 📋 Prerequisites
 
@@ -80,6 +93,7 @@ And 17+ more attack vectors
   - OpenAI API Key
   - Anthropic (Claude) API Key
   - Grok API Key
+  - Google Gemini API Key
   - OLLAMA (local installation)
 
 ## 🔧 Installation
@@ -163,6 +177,43 @@ python deep_eye.py
 --version              Show version and exit
 --no-banner            Disable banner display
 ```
+
+### Experimental Features (v1.4.0+)
+
+#### 🧬 CVE Intelligence System
+Match detected technologies with real-world CVE exploits:
+
+```powershell
+# Step 1: Build CVE database
+python scripts/update_cve_database.py
+
+# Step 2: Enable in config.yaml
+experimental:
+  enable_cve_matching: true
+```
+
+**Benefits:**
+- 🎯 Real-world exploit payloads from CVE database
+- 🔍 Technology-specific vulnerability testing
+- 📊 8 CVE patterns, 36 exploit payloads, 21 tech mappings
+- 🚀 Prioritizes proven exploits over generic payloads
+
+#### 🌐 Subdomain Discovery & Scanning
+Automatically discover and scan all subdomains:
+
+```yaml
+# config.yaml
+experimental:
+  enable_subdomain_scanning: true
+  max_subdomains_to_scan: 50
+```
+
+**Features:**
+- 🔎 Certificate Transparency (crt.sh)
+- 🔨 DNS bruteforce (100+ common patterns)
+- ✅ Liveness verification
+- 🎯 Parallel subdomain scanning
+- 📋 Aggregated vulnerability reporting
 
 **Note:** All scanning options (depth, threads, AI provider, scan mode, proxy, etc.) are now configured in `config.yaml` for better management and repeatability.
 

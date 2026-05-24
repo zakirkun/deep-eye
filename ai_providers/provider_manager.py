@@ -78,6 +78,7 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenRouter provider: {e}")
 
+        
         # Gemini
         if ai_config.get('gemini', {}).get('enabled', False):
             try:
@@ -114,6 +115,14 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize LiteLLM provider: {e}")
 
+        # OpenRouter
+        if ai_config.get('openrouter', {}).get('enabled', False):
+            try:
+                from ai_providers.openrouter_provider import OpenRouterProvider
+                self.providers['openrouter'] = OpenRouterProvider(ai_config['openrouter'])
+                logger.info("OpenRouter provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenRouter provider: {e}")
     
     def set_provider(self, provider_name: str) -> bool:
         """

@@ -9,6 +9,176 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Fixed
 - **NIX Installer** - Fixed issue where *nix installer unable to run as expected.
+## [1.4.0] - 2025-10-27
+
+### Added
+
+#### AI-Powered Browser Automation with Browser Use
+- **Smart Browser Tester Module** - AI-driven browser-based vulnerability testing
+  - **Browser Use Integration** - Uses Browser Use ([browser-use.com](https://browser-use.com)) - 71.8k+ GitHub stars
+  - **AI-Powered XSS Testing** - GPT-4 intelligently navigates pages and tests for XSS
+  - **AI SQLi Detection** - AI reads page content and identifies SQL error messages
+  - **Intelligent Form Interaction** - AI automatically finds and fills form fields
+  - **Hidden Element Discovery & Testing** - AI finds and evaluates hidden inputs, forms, and elements
+    - Discovers hidden input fields (type="hidden")
+    - Finds display:none and visibility:hidden elements
+    - Detects opacity:0 and off-screen positioned elements
+    - Tests for hidden element manipulation vulnerabilities
+    - Identifies sensitive data exposure in hidden fields (API keys, tokens, credentials)
+    - Evaluates hidden forms and iframes for security issues
+  - **Context Understanding** - AI understands page structure and interactions
+  - **Adaptive Testing** - AI adapts to different web application patterns
+  - **Automatic Fallback** - Falls back to Playwright if Browser Use unavailable
+  - **DOM XSS Testing** - Test for DOM-based XSS vulnerabilities
+  - **Clickjacking Detection** - Verify X-Frame-Options protection
+  - **Screenshot Capture** - Auto-capture proof-of-concept screenshots as base64
+  - **Dialog Detection** - Detect and handle JavaScript alert/confirm/prompt dialogs
+  - **Async Operations** - Asynchronous browser operations for better performance
+
+#### Enhanced Reporting System
+- **Interactive HTML Reports with Modern UI**
+  - **Chart.js Integration** - Visual severity distribution and vulnerability type charts
+  - **DataTables Integration** - Sortable, searchable, and paginated vulnerability tables
+  - **Dynamic Filtering** - Filter vulnerabilities by severity and type in real-time
+  - **Expandable Details** - View full vulnerability details without leaving the report
+  - **Screenshot Evidence** - Embedded base64 screenshots directly in HTML reports
+  - **Responsive Design** - Mobile-friendly report layout
+  - **Export Options** - Export to CSV, Excel, and print-friendly formats
+  - **Evidence Boxes** - Highlighted payload and evidence sections with syntax highlighting
+
+#### Real-Time Pentest State Management
+- **Pentest State Manager** - Track and display pentest progress in real-time
+  - **Phase Tracking** - Monitor current phase (Initialization, Recon, Crawling, Scanning, Reporting)
+  - **Live Statistics** - Real-time vulnerability counts by severity
+  - **Attack Tracking** - Monitor individual attack attempts with success/failure rates
+  - **Time Tracking** - Per-phase elapsed time and total scan duration
+  - **Progress Display** - Rich CLI tables showing current state
+  - **Attack Statistics** - Comprehensive attack type statistics with success rates
+  - **State Persistence** - Export state for analysis and reporting
+
+#### Optimized Attack Logic
+- **Context-Aware Payload Generation**
+  - **Technology Stack Detection** - Automatically detect web technologies (PHP, ASP.NET, WordPress, etc.)
+  - **WAF Detection** - Identify Web Application Firewalls (Cloudflare, Sucuri, Akamai, etc.)
+  - **Database-Specific Payloads** - Generate targeted SQLi payloads for MySQL, PostgreSQL, MSSQL, Oracle
+  - **WAF Bypass Payloads** - Automatic WAF bypass techniques when WAF is detected
+  - **Payload Caching** - Cache generated payloads for improved performance
+  - **Smart Payload Selection** - Limit payloads to most effective ones based on context
+  - **SSTI Detection** - Technology-specific SSTI payloads (Jinja, Flask, Django, PHP)
+  - **LFI/RFI Optimization** - Enhanced file inclusion payloads
+
+#### Enhanced Payload System
+- **Improved Payload Diversity**
+  - Database-specific SQL injection payloads
+  - Context-aware XSS payloads (JSON, HTML, etc.)
+  - Advanced XSS event handlers (animate, autofocus, marquee, etc.)
+  - WAF bypass techniques (encoding, obfuscation, case manipulation)
+  - Template injection payloads for various frameworks
+  - Enhanced LFI/RFI payloads with null byte injection
+
+#### Experimental Features (v1.4.0+)
+- **CVE Intelligence System** - Real-world vulnerability intelligence
+  - **CVE Scraper** - Scrapes CVEs from NVD (National Vulnerability Database)
+  - **SQLite Storage** - Stores CVEs, exploits, and technology mappings
+  - **CVE Matcher** - Matches detected technologies with relevant CVEs
+  - **Exploit Extraction** - Extracts exploit payloads from CVE data
+  - **CVE-Based Payloads** - Generates payloads based on real CVE exploits
+  - **Technology Mapping** - Maps CVEs to affected technologies and versions
+  - **Auto-Update Script** - `scripts/update_cve_database.py` for easy updates
+  - **Severity Filtering** - Filter CVEs by severity (CRITICAL, HIGH, MEDIUM, LOW)
+  
+- **Advanced Subdomain Reconnaissance** - Comprehensive subdomain discovery and scanning
+  - **Certificate Transparency** - Query crt.sh for subdomain certificates
+  - **DNS Bruteforce** - Test 100+ common subdomain patterns
+  - **Search Engine Enumeration** - Discover subdomains via search engines
+  - **Subdomain Verification** - Verify subdomain liveness via HTTP/HTTPS
+  - **Parallel Scanning** - Scan multiple subdomains concurrently
+  - **Subdomain Intelligence** - Gather info (IP, server, title, technologies) per subdomain
+  - **Aggregate Reporting** - Combine all subdomain vulnerabilities in main report
+  - **Smart Filtering** - Limit number of subdomains to scan (configurable)
+
+### Changed
+- **AI Provider Support Expanded**
+  - Added Google Gemini as AI provider option
+  - Now supports 5 AI providers: OpenAI, Claude, Grok, OLLAMA, Gemini
+  - Gemini offers fast and cost-effective AI-powered testing
+  
+- **Scanner Engine Updates**
+  - Integrated browser automation for enhanced testing
+  - Added state management for real-time progress tracking
+  - Improved vulnerability detection with browser verification
+  - Enhanced CLI output with phase indicators and real-time stats
+  - Better error handling and logging
+  - Added hidden element testing to all browser scans
+  - Added subdomain discovery and scanning capability
+
+- **Vulnerability Scanner Improvements**
+  - Added state_manager parameter to scan() method for tracking
+  - Individual attack tracking with start/end timestamps
+  - Success/failure tracking per attack type
+  - Improved evidence collection with more details
+
+- **Configuration Enhancements**
+  - Added `enable_javascript_rendering` option for browser testing
+  - Added `screenshot_enabled` option for screenshot capture
+  - Updated comments with installation requirements
+
+- **Report Generation**
+  - Complete HTML template overhaul with modern design
+  - Added Chart.js and DataTables dependencies via CDN
+  - Improved evidence presentation with highlighted boxes
+  - Better mobile responsiveness
+  - Screenshot support in HTML reports
+
+- **Performance Optimizations**
+  - Payload caching reduces redundant AI calls
+  - Context hashing for efficient cache lookups
+  - Reduced payload count with smart selection
+  - Deduplication of generated payloads
+  - CVE database indexing for fast lookups
+  - Parallel subdomain verification
+
+- **CVE Intelligence Integration**
+  - AI payload generator now uses CVE database for targeted payloads
+  - Automatic technology-to-CVE matching
+  - Prioritizes CVE-based exploits over generic payloads
+  - Real-world exploit patterns from CVE data
+
+### Fixed
+- Browser automation error handling
+- Screenshot capture in different scenarios
+- Payload generation for edge cases
+- State tracking in concurrent scans
+- CLI progress indicators showing correct phase
+
+### Dependencies
+- Added `playwright>=1.40.0` for browser automation
+- Added `browser-use>=0.1.0` for AI-powered browser automation (71.8k+ stars)
+- Added `langchain-openai>=0.1.0` for Browser Use AI integration
+- Added `google-generativeai>=0.3.0` for Google Gemini AI provider
+- Chart.js 4.4.0 (CDN) for interactive charts
+- DataTables 1.13.7 (CDN) for enhanced tables
+- jQuery 3.7.0 (CDN) for DataTables functionality
+- Uses existing `dnspython` for DNS subdomain enumeration
+- Uses existing `sqlite3` (built-in) for CVE database
+
+### New Scripts
+- Added `scripts/update_cve_database.py` - CVE database updater and builder
+  - Scrapes CVEs from NVD API (with fallback to built-in patterns)
+  - Creates SQLite database with CVE intelligence
+  - Generates exploit patterns automatically
+  - Display comprehensive database statistics
+
+### Documentation
+- Updated QUICKSTART.md with browser automation instructions
+- Added advanced features section
+- Added configuration examples for new features
+- Added troubleshooting for browser automation
+- Added performance tips
+- Added experimental features documentation (CVE Intelligence, Subdomain Scanning)
+- Added CVE database update instructions
+- Added subdomain scanning examples
+- Updated README.md with v1.4.0 features and experimental section
 
 ## [1.3.0] - 2025-10-20
 
