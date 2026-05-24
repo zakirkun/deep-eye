@@ -54,6 +54,50 @@ ai_providers:
     site_url: "https://github.com/zakirkun/deep-eye"
     site_name: "Deep Eye"
 
+  mistral:
+    enabled: true
+    api_key: "mistral-abc123def456ghi789jkl012mno345pq"
+    model: ""
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 60
+
+  openrouter:
+    enabled: true
+    api_key: "sk-or-v1-your-openrouter-api-key-here"
+    base_url: "https://openrouter.ai/api/v1"
+    model: "openai/gpt-4o"  
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  # Gemini (Google)
+  gemini:
+    enabled: true
+    api_key: "your-gemini-api-key-here"
+    model: "gemini-1.5-flash"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  # Groq (xAI)
+  groq:
+    enabled: true
+    api_key: "your-groq-api-key-here"
+    base_url: "https://api.groq.com/openai/v1"
+    model: "mixtral-8x7b-32768"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  # LM Studio (Local LLM)
+  lmstudio:
+    enabled: true
+    base_url: "http://127.0.0.1:1234"
+    model: "local-model"
+    temperature: 0.7
+    timeout: 60
+
 # Scanner Settings
 scanner:
   # Target configuration
@@ -75,8 +119,14 @@ scanner:
   quick_scan: false    # Quick scan (basic tests only)
   
   # AI Provider selection
-  ai_provider: "openai"  # Options: openai, claude, grok, ollama
+  ai_provider: "openai"  # Options: openai, claude, grok, ollama, mistral, openrouter
   
+  # Out-of-Band Application Security Testing (OAST) callback URL
+  # IMPORTANT: Set this to a server you control (e.g., Burp Collaborator, interact.sh)
+  # XSS and XXE payloads use this URL to detect out-of-band interactions.
+  # Leaving this empty uses a safe placeholder that won't leak data to third parties.
+  oast_callback_url: ""  # e.g., "https://your-id.oastify.com"
+
   # Network settings
   proxy: ""  # Proxy URL (e.g., http://127.0.0.1:8080)
   custom_headers: {}  # Custom headers as key-value pairs

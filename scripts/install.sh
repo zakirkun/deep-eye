@@ -6,6 +6,9 @@ echo "  Deep Eye Installation Script"
 echo "===================================="
 echo ""
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Check Python installation
 echo "[*] Checking Python installation..."
 if command -v python3 &> /dev/null; then
@@ -19,18 +22,16 @@ fi
 # Create virtual environment
 echo ""
 echo "[*] Creating virtual environment..."
-if [ -d "../venv" ]; then
+if [ -d "$ROOT_DIR/venv" ]; then
     echo "[*] Virtual environment already exists. Skipping..."
 else
-    cd ..
-    python3 -m venv venv
-    cd scripts
+    python3 -m venv "$ROOT_DIR/venv"
     echo "[+] Virtual environment created"
 fi
 
 # Activate virtual environment
 echo "[*] Activating virtual environment..."
-source ../venv/bin/activate
+source "$ROOT_DIR/venv/bin/activate"
 
 # Upgrade pip
 echo ""
@@ -40,7 +41,7 @@ pip install --upgrade pip
 # Install dependencies
 echo ""
 echo "[*] Installing dependencies..."
-pip install -r ../requirements.txt
+pip install -r "$ROOT_DIR/requirements.txt"
 
 if [ $? -ne 0 ]; then
     echo "[!] Failed to install dependencies"
@@ -52,15 +53,15 @@ echo "[+] Dependencies installed successfully"
 # Create necessary directories
 echo ""
 echo "[*] Creating necessary directories..."
-mkdir -p ../logs ../data ../reports ../templates
+mkdir -p "$ROOT_DIR/logs" "$ROOT_DIR/data" "$ROOT_DIR/reports" "$ROOT_DIR/templates"
 
 echo "[+] Directories created"
 
 # Copy configuration template
 echo ""
 echo "[*] Setting up configuration..."
-if [ ! -f "../config/config.yaml" ]; then
-    cp ../config/config.example.yaml ../config/config.yaml
+if [ ! -f "$ROOT_DIR/config/config.yaml" ]; then
+    cp "$ROOT_DIR/config/config.example.yaml" "$ROOT_DIR/config/config.yaml"
     echo "[+] Configuration file created: config/config.yaml"
     echo "[!] IMPORTANT: Edit config/config.yaml and add your API keys!"
 else
@@ -68,8 +69,8 @@ else
 fi
 
 # Make scripts executable
-chmod +x ../deep_eye.py
-chmod +x ../examples/*.py
+chmod +x "$ROOT_DIR/deep_eye.py"
+chmod +x "$ROOT_DIR/examples"/*.py
 
 # Installation complete
 echo ""

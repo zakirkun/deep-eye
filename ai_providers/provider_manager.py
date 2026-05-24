@@ -60,6 +60,24 @@ class AIProviderManager:
                 logger.info("OLLAMA provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize OLLAMA provider: {e}")
+        # Mistral
+        if ai_config.get('mistral', {}).get('enabled', False):
+            try:
+                from ai_providers.mistral_provider import MistralProvider
+                self.providers['mistral'] = MistralProvider(ai_config['mistral'])
+                logger.info("Mistral provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Mistral provider: {e}")
+        
+        # OpenRouter
+        if ai_config.get('openrouter', {}).get('enabled', False):
+            try:
+                from ai_providers.openrouter_provider import OpenRouterProvider
+                self.providers['openrouter'] = OpenRouterProvider(ai_config['openrouter'])
+                logger.info("OpenRouter provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenRouter provider: {e}")
+
         
         # Gemini
         if ai_config.get('gemini', {}).get('enabled', False):
@@ -69,6 +87,33 @@ class AIProviderManager:
                 logger.info("Gemini provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini provider: {e}")
+
+        # Groq
+        if ai_config.get('groq', {}).get('enabled', False):
+            try:
+                from ai_providers.groq_provider import GroqProvider
+                self.providers['groq'] = GroqProvider(ai_config['groq'])
+                logger.info("Groq provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Groq provider: {e}")
+
+        # LM Studio
+        if ai_config.get('lmstudio', {}).get('enabled', False):
+            try:
+                from ai_providers.lmstudio_provider import LMStudioProvider
+                self.providers['lmstudio'] = LMStudioProvider(ai_config['lmstudio'])
+                logger.info("LM Studio provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LM Studio provider: {e}")
+
+        # LiteLLM
+        if ai_config.get('litellm', {}).get('enabled', False):
+            try:
+                from ai_providers.litellm_provider import LiteLLMProvider
+                self.providers['litellm'] = LiteLLMProvider(ai_config['litellm'])
+                logger.info("LiteLLM provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LiteLLM provider: {e}")
 
         # OpenRouter
         if ai_config.get('openrouter', {}).get('enabled', False):

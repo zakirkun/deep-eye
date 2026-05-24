@@ -8,11 +8,15 @@ urllib3>=2.0.0
 openai>=1.12.0
 anthropic>=0.18.0
 ollama>=0.1.6
+mistralai>=1.0.0
+google-genai>=0.8.0
+litellm>=1.60.0,<2.0.0
 google-generativeai>=0.3.0  # Google Gemini
 
 # Async Support
 aiohttp>=3.9.0
-asyncio>=3.4.3
+# Note: asyncio is part of the Python standard library since 3.4.
+# The PyPI backport package is deprecated and unnecessary on Python 3.8+.
 
 # Web Crawling & Parsing
 selenium>=4.15.0
