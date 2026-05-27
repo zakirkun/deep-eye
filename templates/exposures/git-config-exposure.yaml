@@ -1,0 +1,27 @@
+id: git-config-exposure
+
+info:
+  name: Git Config File Exposure
+  author: deep-eye
+  severity: medium
+  description: Application exposes .git/config, leaking branch/remote info and potentially internal repo URLs.
+  tags: [exposure, git]
+  references:
+    - https://owasp.org/www-community/Path_Traversal
+  classification:
+    cwe-id: CWE-538
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.git/config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "[core]"
+          - "repositoryformatversion"
+        condition: and

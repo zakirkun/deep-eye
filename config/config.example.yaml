@@ -368,6 +368,14 @@ login_replay:
   macro_path: "config/login_macro.json"
   abort_on_fail: true  # Abort scan if login fails
   recheck_interval_seconds: 600  # Re-auth interval
+
+# YAML Template Engine (Group G)
+templates:
+  enabled: false  # Run Nuclei-style YAML templates against discovered URLs
+  template_directories:
+    - "templates"
+  tag_filters: []  # Empty = all tags. Example: [cors, exposure]
+  severity_filter: []  # Empty = all. Example: [high, critical]
   
   # Report sections
   include_sections:

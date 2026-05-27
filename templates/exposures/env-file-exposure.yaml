@@ -1,0 +1,25 @@
+id: env-file-exposure
+
+info:
+  name: .env File Exposure
+  author: deep-eye
+  severity: high
+  description: Application exposes .env file at the document root, potentially leaking DB credentials, API keys, and other secrets.
+  tags: [exposure, secrets]
+  references:
+    - https://cwe.mitre.org/data/definitions/200.html
+  classification:
+    cwe-id: CWE-200
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.env"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: regex
+        part: body
+        regex:
+          - '(?i)(DB_PASSWORD|API_KEY|SECRET_KEY|AWS_ACCESS_KEY_ID|DATABASE_URL)=.+'

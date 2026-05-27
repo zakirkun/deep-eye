@@ -1,0 +1,35 @@
+id: cors-wildcard-with-credentials
+
+info:
+  name: CORS Wildcard with Credentials
+  author: deep-eye
+  severity: high
+  description: |
+    Application reflects an arbitrary Origin header AND sends Access-Control-Allow-Credentials: true,
+    enabling cross-origin attackers to read authenticated responses.
+  tags: [cors, misconfig]
+  references:
+    - https://owasp.org/www-community/attacks/Cross_Origin_Resource_Sharing
+  classification:
+    cwe-id: CWE-942
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/user"
+      - "{{BaseURL}}/api/me"
+      - "{{BaseURL}}/api/account"
+    headers:
+      Origin: "https://evil.example.com"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "Access-Control-Allow-Origin: https://evil.example.com"
+        case-insensitive: true
+      - type: word
+        part: header
+        words:
+          - "Access-Control-Allow-Credentials: true"
+        case-insensitive: true
