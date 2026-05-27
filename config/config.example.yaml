@@ -376,6 +376,28 @@ templates:
     - "templates"
   tag_filters: []  # Empty = all tags. Example: [cors, exposure]
   severity_filter: []  # Empty = all. Example: [high, critical]
+
+# Cloudflare / Akamai Challenge Solver (Group H)
+challenge_solver:
+  enabled: false  # Detect challenge pages and solve via Playwright
+  vendors: [cloudflare, akamai]
+  playwright_headless: true
+  cookie_ttl_seconds: 1800  # Re-solve if older
+  timeout_seconds: 30
+
+# Intercepting Proxy (Group H)
+intercepting_proxy:
+  enabled: false  # Route scanner traffic through local mitmweb instance
+  required: false  # If true, abort scan when mitmweb missing
+  bind_host: "127.0.0.1"
+  proxy_port: 8080  # Proxy listener
+  mitmweb_port: 8081  # Web UI port
+
+# TLS Evasion (Group H — DESIGN ONLY, no integration shipped)
+# To use: install curl-cffi and manually swap Session in your fork.
+# tls_evasion:
+#   enabled: false
+#   impersonate: "chrome120"
   
   # Report sections
   include_sections:
