@@ -355,6 +355,19 @@ bug_bounty:
   min_severity: "high"  # Only generate for findings at or above this severity
   output_directory: "reports/bounty"
   one_file_per_vuln: true
+
+# CAPTCHA Detection (Group D)
+captcha:
+  enabled: false  # Detect reCAPTCHA / hCaptcha / Turnstile / generic
+  skip_protected: true  # Skip vuln scan on CAPTCHA-protected pages
+  vendors: [recaptcha, hcaptcha, turnstile, generic]
+
+# Login Macro Replay (Group D)
+login_replay:
+  enabled: false  # Authenticate via JSON macro before scan
+  macro_path: "config/login_macro.json"
+  abort_on_fail: true  # Abort scan if login fails
+  recheck_interval_seconds: 600  # Re-auth interval
   
   # Report sections
   include_sections:
