@@ -29,7 +29,7 @@ class ReportGenerator:
         Args:
             results: Scan results
             output_path: Output file path
-            format: Report format (html, pdf, json, sarif)
+            format: Report format (html, pdf, json, sarif, junit, csv, xlsx)
         """
         if format == "json":
             self._generate_json(results, output_path)
@@ -39,8 +39,51 @@ class ReportGenerator:
             self._generate_pdf(results, output_path)
         elif format == "sarif":
             self._generate_sarif(results, output_path)
+        elif format == "junit":
+            self._generate_junit(results, output_path)
+        elif format == "csv":
+            self._generate_csv(results, output_path)
+        elif format == "xlsx":
+            self._generate_xlsx(results, output_path)
         else:
             raise ValueError(f"Unsupported format: {format}")
+
+    def _generate_junit(self, results: Dict, output_path: str):
+        """Generate JUnit XML report for CI/CD integration."""
+        try:
+            from utils.exports import build_junit_xml
+            xml_bytes = build_junit_xml(results)
+            with open(output_path, "wb") as f:
+                f.write(xml_bytes)
+            logger.info(f"JUnit XML report generated: {output_path}")
+        except Exception as e:
+            logger.error(f"Failed to generate JUnit XML report: {e}", exc_info=True)
+
+    def _generate_csv(self, results: Dict, output_path: str):
+        """Generate CSV report for spreadsheet ingestion."""
+        try:
+            from utils.exports import build_csv
+            csv_text = build_csv(results)
+            with open(output_path, "w", encoding="utf-8", newline="") as f:
+                f.write(csv_text)
+            logger.info(f"CSV report generated: {output_path}")
+        except Exception as e:
+            logger.error(f"Failed to generate CSV report: {e}", exc_info=True)
+
+    def _generate_xlsx(self, results: Dict, output_path: str):
+        """Generate Excel xlsx workbook (requires openpyxl)."""
+        try:
+            from utils.exports import build_xlsx
+            interactive = self.report_config.get("xlsx_interactive_install", True)
+            success = build_xlsx(results, output_path, interactive=interactive)
+            if success:
+                logger.info(f"Excel report generated: {output_path}")
+            else:
+                logger.warning(
+                    f"Excel report skipped (openpyxl unavailable): {output_path}"
+                )
+        except Exception as e:
+            logger.error(f"Failed to generate Excel report: {e}", exc_info=True)
 
     def _safe_serialize(self, obj: any):
         """Recursively make data JSON-safe."""

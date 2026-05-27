@@ -323,8 +323,10 @@ reporting:
   # Output configuration
   enabled: true  # Generate reports automatically
   output_directory: "reports"  # Directory to save reports
-  output_filename: ""  # Custom filename (auto-generated if empty)
-  default_format: "html"  # Options: html, pdf, json
+  output_filename: ""  # Custom filename stem (auto-generated if empty); extensions appended per format
+  default_format: "html"  # Single-format fallback. Options: html, pdf, json, sarif, junit, csv, xlsx
+  formats: []  # Multi-format list. If non-empty, takes precedence over default_format. Example: [html, junit, csv, xlsx]
+  xlsx_interactive_install: true  # Prompt to install openpyxl when missing (xlsx only)
   
   # Report sections
   include_sections:

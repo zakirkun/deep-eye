@@ -97,7 +97,14 @@ Note: All scan options are configured in config.yaml
         action='store_true',
         help='Disable banner display'
     )
-    
+
+    parser.add_argument(
+        '--formats',
+        type=str,
+        default=None,
+        help='Comma-separated report formats (e.g. junit,csv,xlsx). Overrides config.'
+    )
+
     return parser.parse_args()
 
 
@@ -231,31 +238,59 @@ def main():
         if reporting_config.get('enabled', True):
             console.print("\n[bold blue]Generating report...[/bold blue]")
             report_gen = ReportGenerator(config)
-            
+
             # Get output settings from config
             output_dir = reporting_config.get('output_directory', 'reports')
             output_filename = reporting_config.get('output_filename', '')
-            report_format = reporting_config.get('default_format', 'html')
-            
+
+            # Resolve formats: CLI --formats > config formats list > default_format
+            if args.formats:
+                formats = [f.strip() for f in args.formats.split(',') if f.strip()]
+            elif reporting_config.get('formats'):
+                formats = list(reporting_config['formats'])
+            else:
+                formats = [reporting_config.get('default_format', 'html')]
+
             # Create output directory if it doesn't exist
             Path(output_dir).mkdir(parents=True, exist_ok=True)
-            
-            # Generate filename if not specified
-            if not output_filename:
-                from datetime import datetime
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                domain = Path(target_url).stem.replace(':', '_')
-                output_filename = f"deep_eye_{domain}_{timestamp}.{report_format}"
-            
-            output_path = str(Path(output_dir) / output_filename)
-            
-            report_gen.generate(
-                results=results,
-                output_path=output_path,
-                format=report_format
-            )
-            
-            console.print(f"[bold green]✓[/bold green] Report saved to: {output_path}")
+
+            # Generate stem (without extension) once, reused across formats
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            domain = Path(target_url).stem.replace(':', '_')
+
+            if output_filename:
+                # User-specified filename: strip extension, use as stem
+                stem = Path(output_filename).stem
+            else:
+                stem = f"deep_eye_{domain}_{timestamp}"
+
+            # Format → file extension mapping
+            ext_map = {
+                'html': 'html',
+                'pdf': 'pdf',
+                'json': 'json',
+                'sarif': 'sarif.json',
+                'junit': 'junit.xml',
+                'csv': 'csv',
+                'xlsx': 'xlsx',
+            }
+
+            for fmt in formats:
+                ext = ext_map.get(fmt, fmt)
+                output_path = str(Path(output_dir) / f"{stem}.{ext}")
+                try:
+                    report_gen.generate(
+                        results=results,
+                        output_path=output_path,
+                        format=fmt
+                    )
+                    console.print(f"[bold green]✓[/bold green] {fmt.upper()} report saved to: {output_path}")
+                except ValueError as e:
+                    console.print(f"[bold red]✗[/bold red] {fmt}: {e}")
+                except Exception as e:
+                    logger.error(f"Failed to generate {fmt} report: {e}", exc_info=True)
+                    console.print(f"[bold red]✗[/bold red] {fmt}: {e}")
         
         # Display summary
         vuln_count = len(results.get('vulnerabilities', []))
