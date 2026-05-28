@@ -61,6 +61,13 @@ cp config/config.example.yaml config/config.yaml
 # Edit config.yaml with your API keys
 ```
 
+**Or skip manual config — the setup wizard runs automatically on first launch:**
+```bash
+pip install -r requirements.txt
+python deep_eye.py -u https://target.com
+# Interactive wizard guides you through provider selection, API key, and settings
+```
+
 **Browser automation (optional):**
 ```bash
 pip install playwright && playwright install chromium
@@ -332,6 +339,9 @@ MIT License. See [LICENSE](LICENSE) for details.
 ## Links
 
 - [Quick Start Guide](docs/QUICKSTART.md)
+- [Configuration Reference](docs/CONFIGURATION.md)
+- [Modules Reference](docs/MODULES.md)
+- [Scan Flow](docs/SCAN_FLOW.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Changelog](CHANGELOG.md)
 - [Issues](https://github.com/zakirkun/deep-eye/issues)
