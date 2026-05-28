@@ -222,9 +222,14 @@ def main():
         if args.diff:
             return _run_diff_mode(args)
 
-        # Load configuration
-        console.print("[bold blue]Loading configuration...[/bold blue]")
-        config = ConfigLoader.load(args.config)
+        # Load configuration (run onboard wizard if config missing)
+        config_path = Path(args.config)
+        if not config_path.exists():
+            from utils.onboard import run_onboard
+            config = run_onboard(str(config_path))
+        else:
+            console.print("[bold blue]Loading configuration...[/bold blue]")
+            config = ConfigLoader.load(args.config)
         
         # Get scanner config
         scanner_config = config.get('scanner', {})
