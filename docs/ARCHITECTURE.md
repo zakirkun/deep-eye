@@ -63,7 +63,7 @@ All providers implement: `generate(prompt, **kwargs) -> str`
 
 `provider_manager.py` handles: provider selection, failover, retry logic, API key management.
 
-Providers: OpenAI, Claude, Grok, OLLAMA, Gemini, OpenRouter, Mistral, Groq, LM Studio, LiteLLM.
+Providers: OpenAI, Claude, Grok, OLLAMA, Gemini, OpenRouter, Requesty, Mistral, Groq, LM Studio, LiteLLM.
 
 ### `modules/` — Specialized Testers
 

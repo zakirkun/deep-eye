@@ -52,7 +52,7 @@ python tests/e2e_litellm.py                         # e2e test (requires API key
 | Layer | Purpose |
 |-------|---------|
 | `core/` | Orchestration: scanner engine, vuln scanner, AI payload gen, report gen, state manager, subdomain scanner, plugin manager, scan diff |
-| `ai_providers/` | Unified interface to OpenAI, Claude, Grok, OLLAMA, Gemini, Groq, Mistral, OpenRouter, LiteLLM, LM Studio. All implement `generate(prompt, **kwargs) -> str` |
+| `ai_providers/` | Unified interface to OpenAI, Claude, Grok, OLLAMA, Gemini, Groq, Mistral, OpenRouter, Requesty, LiteLLM, LM Studio. All implement `generate(prompt, **kwargs) -> str` |
 | `modules/` | Specialized testers (see Module Categories below) |
 | `utils/` | http_client, config_loader, parser, logger, notification_manager, exports (JUnit/CSV/XLSX), compliance mapper, scope_manager, oast_server, ai_summary_generator |
 | `scripts/` | CVE database updater, RAG index builder, notification tester |
