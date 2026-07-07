@@ -46,9 +46,29 @@ ai_providers:
     base_url: "http://localhost:11434"
     model: "llama2"
     timeout: 60
+
+  openrouter:
+    enabled: false
+    api_key: "sk-or-..."
+    model: "openai/gpt-4o"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  requesty:
+    enabled: false
+    api_key: "sk-..."          # Get a key at https://app.requesty.ai/api-keys
+    model: "openai/gpt-4o-mini"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
 ```
 
-Supported providers: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `mistral`, `groq`, `lmstudio`, `litellm`
+Requesty (https://requesty.ai) is an OpenAI-compatible router. Deep Eye talks to it via
+`https://router.requesty.ai/v1` using your `REQUESTY_API_KEY`. Models use `provider/model`
+naming (e.g. `openai/gpt-4o-mini`).
+
+Supported providers: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `requesty`, `mistral`, `groq`, `lmstudio`, `litellm`
 
 ### scanner
 

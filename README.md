@@ -17,7 +17,7 @@
 
 ---
 
-Deep Eye orchestrates multiple AI providers (OpenAI, Claude, Grok, Gemini, OLLAMA, Groq, Mistral, OpenRouter, LiteLLM, LM Studio) for intelligent payload generation, scans targets for 45+ vulnerability types, and produces professional reports with compliance mapping.
+Deep Eye orchestrates multiple AI providers (OpenAI, Claude, Grok, Gemini, OLLAMA, Groq, Mistral, OpenRouter, Requesty, LiteLLM, LM Studio) for intelligent payload generation, scans targets for 45+ vulnerability types, and produces professional reports with compliance mapping.
 
 ## Features
 
@@ -145,7 +145,7 @@ ai_providers:
     model: "llama2"
 ```
 
-Supported: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `mistral`, `groq`, `lmstudio`, `litellm`
+Supported: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `requesty`, `mistral`, `groq`, `lmstudio`, `litellm`
 
 ### Scanner Settings
 

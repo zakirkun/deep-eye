@@ -75,6 +75,12 @@ PROVIDERS = {
         "default_model": "local-model",
         "base_url": "http://localhost:1234/v1",
     },
+    "11": {
+        "key": "requesty",
+        "name": "Requesty",
+        "needs_key": True,
+        "default_model": "openai/gpt-4o-mini",
+    },
 }
 
 

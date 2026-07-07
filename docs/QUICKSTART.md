@@ -124,6 +124,15 @@ ai_providers:
     model: "openai/gpt-4o"
 ```
 
+### Requesty
+```yaml
+ai_providers:
+  requesty:
+    enabled: true
+    api_key: "sk-..."
+    model: "openai/gpt-4o-mini"
+```
+
 ### LiteLLM (Universal Proxy)
 ```yaml
 ai_providers:

@@ -78,6 +78,15 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenRouter provider: {e}")
 
+        # Requesty
+        if ai_config.get('requesty', {}).get('enabled', False):
+            try:
+                from ai_providers.requesty_provider import RequestyProvider
+                self.providers['requesty'] = RequestyProvider(ai_config['requesty'])
+                logger.info("Requesty provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Requesty provider: {e}")
+
         
         # Gemini
         if ai_config.get('gemini', {}).get('enabled', False):
