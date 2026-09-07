@@ -23,7 +23,7 @@ Env substitution in YAML: `${VAR}` and `${VAR:-default}` (`utils/config_loader.p
 
 Enable **one or more** providers. Active provider: `scanner.ai_provider`.
 
-Supported: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `orcarouter`, `mistral`, `groq`, `lmstudio`, `litellm`, `nvidia_nim`.
+Supported: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `orcarouter`, `mistral`, `groq`, `lmstudio`, `litellm`, `nvidia_nim`, `atlascloud`.
 
 Each block: `enabled`, `api_key` (if needed), `model`, `temperature`, `max_tokens`, `timeout`, optional `base_url`.
 

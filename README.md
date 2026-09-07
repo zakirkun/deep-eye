@@ -151,9 +151,14 @@ ai_providers:
     enabled: true
     base_url: "http://localhost:11434"
     model: "llama2"
+  atlascloud:
+    enabled: false
+    api_key: "${ATLASCLOUD_API_KEY}"
+    base_url: "https://api.atlascloud.ai/v1"
+    model: "openai/gpt-4.1-mini"
 ```
 
-Supported: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `orcarouter`, `requesty`, `mistral`, `groq`, `lmstudio`, `litellm`, `nvidia_nim`
+Supported: `openai`, `claude`, `grok`, `ollama`, `gemini`, `openrouter`, `orcarouter`, `requesty`, `mistral`, `groq`, `lmstudio`, `litellm`, `nvidia_nim`, `atlascloud`
 
 ### Scanner Settings
 
