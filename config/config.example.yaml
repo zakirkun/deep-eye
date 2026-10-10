@@ -109,6 +109,15 @@ ai_providers:
     max_tokens: 2000
     timeout: 60
 
+  atlascloud:
+    enabled: false
+    api_key: "${ATLASCLOUD_API_KEY:-your-atlascloud-api-key-here}"
+    base_url: "https://api.atlascloud.ai/v1"
+    model: "openai/gpt-4.1-mini"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 60
+
 # Scanner Settings
 scanner:
   # Target configuration
@@ -131,7 +140,7 @@ scanner:
   quick_scan: false    # Quick scan (basic tests only)
   
   # AI Provider selection
-  ai_provider: "openai"  # Options: openai, claude, grok, ollama, mistral, openrouter, orcarouter, nvidia_nim
+  ai_provider: "openai"  # Options include openai, claude, atlascloud, ollama, openrouter, nvidia_nim
   
   # Out-of-Band Application Security Testing (OAST) callback URL
   # IMPORTANT: Set this to a server you control (e.g., Burp Collaborator, interact.sh)

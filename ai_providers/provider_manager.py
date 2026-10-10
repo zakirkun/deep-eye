@@ -136,6 +136,15 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize NVIDIA NIM provider: {e}")
 
+        if ai_config.get("atlascloud", {}).get("enabled", False):
+            try:
+                from ai_providers.atlascloud_provider import AtlasCloudProvider
+
+                self.providers["atlascloud"] = AtlasCloudProvider(ai_config["atlascloud"])
+                logger.info("Atlas Cloud provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Atlas Cloud provider: {e}")
+
     def set_provider(self, provider_name: str) -> bool:
         if provider_name not in self.providers:
             logger.error(f"Provider {provider_name} not available")
