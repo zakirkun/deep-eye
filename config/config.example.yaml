@@ -109,6 +109,15 @@ ai_providers:
     max_tokens: 2000
     timeout: 60
 
+  cheaperinference:
+    enabled: false
+    api_key: "ci_live_your-cheaperinference-api-key-here"
+    base_url: "https://api.cheaperinference.com/v1"
+    model: "gpt-5.4-mini"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
 # Scanner Settings
 scanner:
   # Target configuration
@@ -131,7 +140,7 @@ scanner:
   quick_scan: false    # Quick scan (basic tests only)
   
   # AI Provider selection
-  ai_provider: "openai"  # Options: openai, claude, grok, ollama, mistral, openrouter, orcarouter, nvidia_nim
+  ai_provider: "openai"  # Options: openai, claude, grok, ollama, mistral, openrouter, orcarouter, nvidia_nim, cheaperinference
   
   # Out-of-Band Application Security Testing (OAST) callback URL
   # IMPORTANT: Set this to a server you control (e.g., Burp Collaborator, interact.sh)

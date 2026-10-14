@@ -17,6 +17,7 @@ ai_providers/
 ├── mistral_provider.py
 ├── openrouter_provider.py
 ├── orcarouter_provider.py
+├── cheaperinference_provider.py
 ├── litellm_provider.py
 ├── nvidia_nim_provider.py
 └── lmstudio_provider.py

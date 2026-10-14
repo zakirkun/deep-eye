@@ -98,6 +98,13 @@ PROVIDERS = {
         "default_model": "nvidia/nemotron-3-ultra-550b-a55b",
         "base_url": "https://integrate.api.nvidia.com/v1",
     },
+    "14": {
+        "key": "cheaperinference",
+        "name": "Cheaper Inference",
+        "needs_key": True,
+        "default_model": "gpt-5.4-mini",
+        "base_url": "https://api.cheaperinference.com/v1",
+    },
 }
 
 CORE_CHECKS = [

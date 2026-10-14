@@ -136,6 +136,15 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize NVIDIA NIM provider: {e}")
 
+        if ai_config.get("cheaperinference", {}).get("enabled", False):
+            try:
+                from ai_providers.cheaperinference_provider import CheaperInferenceProvider
+
+                self.providers["cheaperinference"] = CheaperInferenceProvider(ai_config["cheaperinference"])
+                logger.info("Cheaper Inference provider initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Cheaper Inference provider: {e}")
+
     def set_provider(self, provider_name: str) -> bool:
         if provider_name not in self.providers:
             logger.error(f"Provider {provider_name} not available")
