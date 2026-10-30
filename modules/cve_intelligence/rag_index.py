@@ -52,7 +52,11 @@ class CVERagIndex:
         config = config or {}
         rag_config = config.get("rag", {}) if isinstance(config.get("rag"), dict) else {}
 
-        self.index_path = Path(rag_config.get("index_path", "data/cve_rag_index.pkl"))
+        configured_index = rag_config.get("index_path")
+        if not configured_index:
+            from utils.paths import rag_index_path
+            configured_index = str(rag_index_path())
+        self.index_path = Path(configured_index)
         self.top_k = int(rag_config.get("top_k", 5))
         self.min_score = float(rag_config.get("min_score", 0.15))
         self.auto_rebuild = bool(rag_config.get("auto_rebuild", True))

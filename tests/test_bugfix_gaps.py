@@ -31,11 +31,11 @@ def test_secret_vuln_uses_remediation_key():
     assert hasattr(eng, '_extra_module_testers')
 
 
-def test_gemini_generate_accepts_kwargs():
-    from ai_providers.gemini_provider import GeminiProvider
+def test_openai_compatible_generate_accepts_kwargs():
+    from ai_providers.openai_compatible import OpenAICompatibleProvider
     import inspect
-    sig = inspect.signature(GeminiProvider.generate)
-    assert 'kwargs' in str(sig) or any(
+    sig = inspect.signature(OpenAICompatibleProvider.generate)
+    assert any(
         p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
     )
 

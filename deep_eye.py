@@ -75,8 +75,8 @@ Note: All scan options are configured in config.yaml
     parser.add_argument(
         '-c', '--config',
         type=str,
-        default='config/config.yaml',
-        help='Configuration file path (default: config/config.yaml)'
+        default=None,
+        help='Configuration file path (default: user config dir, then repo config/config.yaml)'
     )
     
     parser.add_argument(
@@ -283,17 +283,20 @@ def main():
 
         if getattr(args, "setup", False) or getattr(args, "setup_force", False):
             from utils.onboard import run_onboard
-            run_onboard(str(Path(args.config)), force=bool(getattr(args, "setup_force", False)))
+            from utils.paths import resolve_config
+            setup_target = resolve_config(args.config, migrate=False)
+            run_onboard(str(setup_target), force=bool(getattr(args, "setup_force", False)))
             return 0
 
         # Load configuration (run onboard wizard if config missing)
-        config_path = Path(args.config)
+        from utils.paths import resolve_config
+        config_path = resolve_config(args.config)
         if not config_path.exists():
             from utils.onboard import run_onboard
             config = run_onboard(str(config_path))
         else:
-            console.print("[bold blue]Loading configuration...[/bold blue]")
-            config = ConfigLoader.load(args.config)
+            console.print(f"[bold blue]Loading configuration from {config_path}...[/bold blue]")
+            config = ConfigLoader.load(str(config_path))
 
         if getattr(args, 'scope_nl', None):
             from utils.nl_scope import apply_nl_scope_to_config
@@ -303,8 +306,15 @@ def main():
         if getattr(args, 'check_config', False):
             from utils.config_validator import validate_config as validate_checks
             from utils.config_validator import format_report
+            from utils.paths import describe
             report = validate_checks(config)
-            console.print(format_report(report, args.config))
+            console.print(format_report(report, str(config_path)))
+            locations = describe()
+            console.print(
+                f"[dim]home: {locations['home']}\n"
+                f"data: {locations['data_dir']}\n"
+                f"logs: {locations['logs_dir']}[/dim]"
+            )
             return 0 if not report.errors else 1
 
         if getattr(args, 'resume', False):

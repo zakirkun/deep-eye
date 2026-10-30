@@ -1,6 +1,11 @@
 """
 AI Provider Manager
-Manages multiple AI providers with dynamic switching and tool calling
+Manages the supported AI providers with dynamic switching and tool calling
+
+Five providers are supported: openai (native), openai_compatible (any
+OpenAI-protocol endpoint, chat or responses API), claude (Anthropic), gemini
+(Google), and ollama (local). Anything else is a config error with an explicit
+migration hint rather than a silent omission.
 """
 
 from typing import Any, Callable, Dict, List, Optional
@@ -9,15 +14,28 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+SUPPORTED_PROVIDERS = ("openai", "openai_compatible", "claude", "gemini", "ollama")
+
+DEPRECATED_PROVIDERS: Dict[str, str] = {
+    "grok": "openai_compatible with base_url https://api.x.ai/v1",
+    "mistral": "openai_compatible with base_url https://api.mistral.ai/v1",
+    "openrouter": "openai_compatible with base_url https://openrouter.ai/api/v1",
+    "groq": "openai_compatible with base_url https://api.groq.com/openai/v1",
+    "lmstudio": "openai_compatible with base_url http://localhost:1234/v1",
+    "litellm": "openai_compatible pointing at your LiteLLM proxy base_url",
+    "requesty": "openai_compatible with base_url https://router.requesty.ai/v1",
+}
+
 
 class AIProviderManager:
-    """Manage multiple AI providers."""
+    """Manage the supported AI providers."""
 
     def __init__(self, config: Dict):
         self.config = config
         self.providers = {}
         self.active_provider = None
         self._active_name = None
+        self._warn_deprecated()
         self._initialize_providers()
         preferred = (config.get("scanner") or {}).get("ai_provider")
         if preferred and preferred in self.providers:
@@ -25,102 +43,86 @@ class AIProviderManager:
         elif self.providers:
             self.set_provider(next(iter(self.providers)))
 
-    def _initialize_providers(self):
-        ai_config = self.config.get("ai_providers", {})
+    def _warn_deprecated(self):
+        ai_config = self.config.get("ai_providers") or {}
+        if not isinstance(ai_config, dict):
+            return
+        for name, replacement in DEPRECATED_PROVIDERS.items():
+            block = ai_config.get(name)
+            if isinstance(block, dict) and block.get("enabled", False):
+                logger.error(
+                    f"Provider '{name}' was removed in this release. "
+                    f"Use {replacement}, then delete the ai_providers.{name} block."
+                )
 
-        if ai_config.get("openai", {}).get("enabled", False):
+    def _initialize_providers(self):
+        ai_config = self.config.get("ai_providers") or {}
+        if not isinstance(ai_config, dict):
+            ai_config = {}
+
+        openai_cfg = ai_config.get("openai") or {}
+        if openai_cfg.get("enabled", False):
             try:
                 from ai_providers.openai_provider import OpenAIProvider
 
-                self.providers["openai"] = OpenAIProvider(ai_config["openai"])
+                self.providers["openai"] = OpenAIProvider(openai_cfg)
                 logger.info("OpenAI provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI provider: {e}")
 
-        if ai_config.get("claude", {}).get("enabled", False):
+        compat_cfg = ai_config.get("openai_compatible") or {}
+        if compat_cfg.get("enabled", False):
+            try:
+                from ai_providers.openai_compatible import OpenAICompatibleProvider
+
+                self.providers["openai_compatible"] = OpenAICompatibleProvider(compat_cfg)
+                mode = compat_cfg.get("api_mode") or "chat"
+                logger.info(f"OpenAI-compatible provider initialized ({mode} API)")
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenAI-compatible provider: {e}")
+
+        claude_cfg = ai_config.get("claude") or {}
+        if claude_cfg.get("enabled", False):
             try:
                 from ai_providers.claude_provider import ClaudeProvider
 
-                self.providers["claude"] = ClaudeProvider(ai_config["claude"])
+                self.providers["claude"] = ClaudeProvider(claude_cfg)
                 logger.info("Claude provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Claude provider: {e}")
 
-        if ai_config.get("grok", {}).get("enabled", False):
-            try:
-                from ai_providers.grok_provider import GrokProvider
-
-                self.providers["grok"] = GrokProvider(ai_config["grok"])
-                logger.info("Grok provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Grok provider: {e}")
-
-        if ai_config.get("ollama", {}).get("enabled", False):
+        ollama_cfg = ai_config.get("ollama") or {}
+        if ollama_cfg.get("enabled", False):
             try:
                 from ai_providers.ollama_provider import OllamaProvider
 
-                self.providers["ollama"] = OllamaProvider(ai_config["ollama"])
+                self.providers["ollama"] = OllamaProvider(ollama_cfg)
                 logger.info("OLLAMA provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize OLLAMA provider: {e}")
 
-        if ai_config.get("mistral", {}).get("enabled", False):
-            try:
-                from ai_providers.mistral_provider import MistralProvider
-
-                self.providers["mistral"] = MistralProvider(ai_config["mistral"])
-                logger.info("Mistral provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Mistral provider: {e}")
-
-        if ai_config.get("openrouter", {}).get("enabled", False):
-            try:
-                from ai_providers.openrouter_provider import OpenRouterProvider
-
-                self.providers["openrouter"] = OpenRouterProvider(ai_config["openrouter"])
-                logger.info("OpenRouter provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize OpenRouter provider: {e}")
-
-        if ai_config.get("gemini", {}).get("enabled", False):
+        gemini_cfg = ai_config.get("gemini") or {}
+        if gemini_cfg.get("enabled", False):
             try:
                 from ai_providers.gemini_provider import GeminiProvider
 
-                self.providers["gemini"] = GeminiProvider(ai_config["gemini"])
+                self.providers["gemini"] = GeminiProvider(gemini_cfg)
                 logger.info("Gemini provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini provider: {e}")
 
-        if ai_config.get("groq", {}).get("enabled", False):
-            try:
-                from ai_providers.groq_provider import GroqProvider
-
-                self.providers["groq"] = GroqProvider(ai_config["groq"])
-                logger.info("Groq provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Groq provider: {e}")
-
-        if ai_config.get("lmstudio", {}).get("enabled", False):
-            try:
-                from ai_providers.lmstudio_provider import LMStudioProvider
-
-                self.providers["lmstudio"] = LMStudioProvider(ai_config["lmstudio"])
-                logger.info("LM Studio provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize LM Studio provider: {e}")
-
-        if ai_config.get("litellm", {}).get("enabled", False):
-            try:
-                from ai_providers.litellm_provider import LiteLLMProvider
-
-                self.providers["litellm"] = LiteLLMProvider(ai_config["litellm"])
-                logger.info("LiteLLM provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize LiteLLM provider: {e}")
-
     def set_provider(self, provider_name: str) -> bool:
+        if provider_name in DEPRECATED_PROVIDERS:
+            logger.error(
+                f"Provider '{provider_name}' was removed. "
+                f"Use {DEPRECATED_PROVIDERS[provider_name]}."
+            )
+            return False
         if provider_name not in self.providers:
-            logger.error(f"Provider {provider_name} not available")
+            available = list(self.providers) or list(SUPPORTED_PROVIDERS)
+            logger.error(
+                f"Provider {provider_name} not available. Available: {available}"
+            )
             return False
         self.active_provider = self.providers[provider_name]
         self._active_name = provider_name
@@ -130,7 +132,7 @@ class AIProviderManager:
     def generate(self, prompt: str, **kwargs) -> str:
         """
         Generate response with retry and automatic failover.
-        Pass tools= + handlers= for multi-round tool calling (OpenAI/Claude).
+        Pass tools= + handlers= for multi-round tool calling.
         """
         if not self.active_provider and not self.providers:
             logger.error("No AI providers available")
@@ -181,7 +183,7 @@ class AIProviderManager:
         max_rounds: int = 5,
         **kwargs,
     ) -> str:
-        """Multi-round tool calling via active provider (OpenAI/Claude)."""
+        """Multi-round tool calling via the active provider."""
         from ai_providers.tool_runtime import run_tool_loop
 
         if not self.active_provider and not self.providers:

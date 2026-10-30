@@ -36,6 +36,7 @@ class ClaudeProvider:
         self.max_tokens = int(self.config.get("max_tokens", 2000) or 2000)
         self.timeout = float(self.config.get("timeout", 60) or 60)
         self.base_url = (self.config.get("base_url") or "").strip() or None
+        self.thinking_budget = int(self.config.get("thinking_budget_tokens", 0) or 0)
 
         if (
             not self.api_key
@@ -88,23 +89,26 @@ class ClaudeProvider:
         max_tokens = int(kwargs.get("max_tokens", self.max_tokens) or self.max_tokens)
         system = kwargs.get("system") or _SYSTEM
 
+        budget = int(kwargs.get("thinking_budget_tokens", self.thinking_budget) or 0)
+        request: Dict[str, Any] = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "system": system,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if budget > 0:
+            request["thinking"] = {"type": "enabled", "budget_tokens": budget}
+            request["temperature"] = 1
+        else:
+            request["temperature"] = temperature
+
         try:
-            response = self.client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                system=system,
-                messages=[{"role": "user", "content": prompt}],
-            )
+            response = self.client.messages.create(**request)
             return _extract_claude_text(response)
         except Exception as e:
-            if "temperature" in str(e).lower():
-                response = self.client.messages.create(
-                    model=model,
-                    max_tokens=max_tokens,
-                    system=system,
-                    messages=[{"role": "user", "content": prompt}],
-                )
+            if "temperature" in str(e).lower() and "temperature" in request:
+                request.pop("temperature")
+                response = self.client.messages.create(**request)
                 return _extract_claude_text(response)
             logger.error(f"Claude generation error: {e}")
             raise

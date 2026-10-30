@@ -916,9 +916,10 @@ class ScannerEngine:
             try:
                 from modules.cve_intelligence.rag_index import CVERagIndex
                 rag = CVERagIndex(self.config)
+                from utils.paths import cve_db_path as default_cve_db
                 cve_db_path = self.config.get('cve_intelligence', {}).get(
-                    'database_path', 'data/cve_intelligence.db'
-                )
+                    'database_path'
+                ) or str(default_cve_db())
                 # Auto-rebuild if stale
                 if rag_config.get('auto_rebuild', True) and rag.is_stale(cve_db_path):
                     rag.build(cve_db_path, interactive=False)

@@ -25,64 +25,19 @@ PROVIDERS = {
         "default_model": "claude-sonnet-4-20250514",
     },
     "3": {
-        "key": "gemini",
-        "name": "Google Gemini",
+        "key": "openai_compatible",
+        "name": "OpenAI-compatible (vLLM / LM Studio / OpenRouter / Groq / xAI / Azure)",
         "needs_key": True,
-        "default_model": "gemini-1.5-flash",
+        "default_model": "gpt-4o",
+        "base_url": "http://localhost:1234/v1",
+        "api_mode": "chat",
     },
     "4": {
-        "key": "grok",
-        "name": "Grok (xAI)",
-        "needs_key": True,
-        "default_model": "grok-beta",
-        "base_url": "https://api.x.ai/v1",
-    },
-    "5": {
         "key": "ollama",
         "name": "OLLAMA (Local)",
         "needs_key": False,
         "default_model": "llama2",
         "base_url": "http://localhost:11434",
-    },
-    "6": {
-        "key": "openrouter",
-        "name": "OpenRouter",
-        "needs_key": True,
-        "default_model": "openai/gpt-4o",
-        "base_url": "https://openrouter.ai/api/v1",
-    },
-    "7": {
-        "key": "mistral",
-        "name": "Mistral AI",
-        "needs_key": True,
-        "default_model": "mistral-large-latest",
-    },
-    "8": {
-        "key": "groq",
-        "name": "Groq",
-        "needs_key": True,
-        "default_model": "llama-3.1-70b-versatile",
-        "base_url": "https://api.groq.com/openai/v1",
-    },
-    "9": {
-        "key": "litellm",
-        "name": "LiteLLM (Proxy)",
-        "needs_key": True,
-        "default_model": "gpt-4o",
-        "base_url": "http://localhost:4000",
-    },
-    "10": {
-        "key": "lmstudio",
-        "name": "LM Studio (Local)",
-        "needs_key": False,
-        "default_model": "local-model",
-        "base_url": "http://localhost:1234/v1",
-    },
-    "11": {
-        "key": "requesty",
-        "name": "Requesty",
-        "needs_key": True,
-        "default_model": "openai/gpt-4o-mini",
     },
 }
 
@@ -292,10 +247,12 @@ def _wizard_providers() -> tuple:
             "model": info["default_model"],
             "temperature": 0.7,
             "max_tokens": 2000,
-            "timeout": 60 if info["key"] in ("ollama", "lmstudio", "litellm") else 30,
+            "timeout": 60 if info["key"] in ("ollama", "openai_compatible") else 30,
         }
         if info.get("base_url"):
             ai_providers[info["key"]]["base_url"] = info["base_url"]
+        if info.get("api_mode"):
+            ai_providers[info["key"]]["api_mode"] = info["api_mode"]
         if info["needs_key"]:
             ai_providers[info["key"]]["api_key"] = f"your-{info['key']}-api-key-here"
 
@@ -343,6 +300,12 @@ def _configure_one_provider(provider: Dict[str, Any]) -> Dict[str, Any]:
         )
     if base_url:
         cfg["base_url"] = base_url
+    if provider.get("api_mode"):
+        cfg["api_mode"] = Prompt.ask(
+            "API mode",
+            choices=["chat", "responses"],
+            default=provider["api_mode"],
+        )
     cfg["model"] = Prompt.ask("Model", default=provider["default_model"])
     return cfg
 

@@ -25,19 +25,21 @@ class ScanError(RuntimeError):
     pass
 
 
-def load_config(config_path: str) -> Dict:
+def load_config(config_path: Optional[str] = None) -> Dict:
     """Load a YAML config, raising ScanError when the file is unusable."""
-    path = Path(config_path)
+    from utils.paths import resolve_config
+
+    path = resolve_config(config_path)
     if not path.exists():
-        raise ScanError(f"config not found: {config_path}")
+        raise ScanError(f"config not found: {path}")
     try:
         return ConfigLoader.load(str(path))
     except Exception as e:
-        raise ScanError(f"invalid config {config_path}: {e}") from e
+        raise ScanError(f"invalid config {path}: {e}") from e
 
 
 def run_scan(
-    config_path: str = "config/config.yaml",
+    config_path: Optional[str] = None,
     url: Optional[str] = None,
     *,
     enable_recon: Optional[bool] = None,
@@ -143,7 +145,7 @@ def write_reports(
 
 
 def run_scan_with_reports(
-    config_path: str = "config/config.yaml",
+    config_path: Optional[str] = None,
     url: Optional[str] = None,
     **kwargs,
 ) -> Dict:

@@ -21,6 +21,7 @@ warnings.filterwarnings('ignore', category=RuntimeWarning, module='asyncio')
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from modules.cve_intelligence.cve_scraper import CVEScraper
+from utils.paths import cve_db_path, ensure_dirs
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.table import Table
@@ -81,7 +82,8 @@ def main():
     
     # Initialize scraper with browser support
     console.print("[cyan]Initializing CVE scraper...[/cyan]")
-    scraper = CVEScraper("data/cve_intelligence.db", use_browser=True)
+    ensure_dirs()
+    scraper = CVEScraper(str(cve_db_path()), use_browser=True)
     console.print("[green]✓[/green] Scraper initialized with Playwright browser automation\n")
     
     # Get current stats

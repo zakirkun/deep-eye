@@ -1,101 +1,146 @@
-"""
-Google Gemini AI Provider
-Provides integration with Google Gemini API for payload generation
-"""
+"""Google Gemini provider using the google-genai SDK.
 
-from typing import Optional
+Gemini does not speak the OpenAI protocol natively, so it stays a first-class
+provider rather than an ``openai_compatible`` base_url. It has no tool loop in
+this codebase -- ``generate_with_tools`` is absent, and the shared tool runtime
+falls back to plain generation for it.
+"""
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+GEMINI_MODELS: List[str] = [
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash",
+]
+
+_DEFAULT_MODEL = "gemini-2.0-flash"
+
+_SYSTEM = (
+    "You are a security expert specializing in penetration testing "
+    "and vulnerability research."
+)
+
+THINKING_BUDGETS = ("low", "high")
+
 
 class GeminiProvider:
-    """Google Gemini AI provider for Deep Eye."""
-    
-    def __init__(self, config: dict):
-        """
-        Initialize Gemini provider.
-        
-        Args:
-            config: Provider configuration dictionary
-        """
-        self.config = config
-        self.api_key = config.get('api_key', '')
-        self.model = config.get('model', 'gemini-1.5-flash')
-        self.temperature = config.get('temperature', 0.7)
-        self.max_tokens = config.get('max_tokens', 2000)
-        self.timeout = config.get('timeout', 30)
-        self.client = None
-        
-        if self.api_key:
-            self._initialize_client()
-    
-    def _initialize_client(self):
-        """Initialize Gemini client."""
-        try:
-            import google.generativeai as genai
-            
-            # Configure Gemini with API key
-            genai.configure(api_key=self.api_key)
-            
-            # Initialize model
-            self.client = genai.GenerativeModel(
-                model_name=self.model,
-                generation_config={
-                    'temperature': self.temperature,
-                    'max_output_tokens': self.max_tokens,
-                }
-            )
-            
-            logger.info(f"Gemini provider initialized with model: {self.model}")
-            
-        except ImportError:
-            logger.error("Google Generative AI library not installed. Install with: pip install google-generativeai")
-            self.client = None
-        except Exception as e:
-            logger.error(f"Failed to initialize Gemini client: {e}")
-            self.client = None
-    
-    def generate(self, prompt: str, **kwargs) -> str:
-        if not self.client:
-            raise RuntimeError("Gemini client not initialized. Check API key and installation.")
+    """Google Gemini provider."""
 
-        max_tokens = kwargs.get('max_tokens', self.max_tokens)
-        temperature = kwargs.get('temperature', self.temperature)
+    name = "gemini"
+
+    def __init__(self, config: Dict):
+        self.config = config or {}
+        self.api_key = (self.config.get("api_key") or "").strip()
+        self.model = self.config.get("model") or _DEFAULT_MODEL
+        self.temperature = float(self.config.get("temperature", 0.7))
+        self.max_tokens = int(self.config.get("max_tokens", 2000) or 2000)
+        self.timeout = float(self.config.get("timeout", 60) or 60)
+
+        budget = self.config.get("thinking_budget")
+        if budget is not None:
+            budget = str(budget).strip().lower()
+            if budget not in THINKING_BUDGETS:
+                raise ValueError(
+                    f"thinking_budget must be one of {THINKING_BUDGETS}, got {budget!r}"
+                )
+        self.thinking_budget = budget or None
+
+        if (
+            not self.api_key
+            or self.api_key.startswith("your-")
+            or self.api_key.startswith("sk-your-")
+        ):
+            raise ValueError(
+                "Gemini API key not provided or still a placeholder "
+                "(set ai_providers.gemini.api_key)"
+            )
 
         try:
-            response = self.client.generate_content(
-                prompt,
-                generation_config={
-                    'temperature': temperature,
-                    'max_output_tokens': max_tokens,
-                }
-            )
-            
-            # Extract text from response
-            if hasattr(response, 'text'):
-                return response.text
-            elif hasattr(response, 'candidates') and response.candidates:
-                return response.candidates[0].content.parts[0].text
-            else:
-                logger.warning("Unexpected Gemini response format")
-                return ""
-            
+            from google import genai
+        except ImportError as e:
+            raise RuntimeError(
+                "the 'google-genai' package is required: pip install google-genai"
+            ) from e
+
+        self.client = genai.Client(api_key=self.api_key)
+
+    def list_models(self) -> List[str]:
+        known = list(GEMINI_MODELS)
+        try:
+            names = []
+            for model in self.client.models.list():
+                name = getattr(model, "name", None) or ""
+                if "gemini" in name:
+                    names.append(name.split("/")[-1])
+            if names:
+                return list(dict.fromkeys(names + known))
         except Exception as e:
-            logger.error(f"Gemini generation error: {e}")
-            raise
-    
-    def is_available(self) -> bool:
-        """Check if Gemini provider is available."""
-        return self.client is not None
-    
-    def get_model_info(self) -> dict:
-        """Get information about the current model."""
-        return {
-            'provider': 'gemini',
-            'model': self.model,
-            'temperature': self.temperature,
-            'max_tokens': self.max_tokens,
-            'available': self.is_available()
+            logger.debug(f"Gemini models.list failed: {e}")
+        return known
+
+    def _build_config(self, model: str, **kwargs) -> Dict[str, Any]:
+        from google.genai import types
+
+        config: Dict[str, Any] = {
+            "temperature": kwargs.get("temperature", self.temperature),
+            "max_output_tokens": int(
+                kwargs.get("max_tokens", self.max_tokens) or self.max_tokens
+            ),
+            "system_instruction": kwargs.get("system") or _SYSTEM,
         }
 
+        budget = kwargs.get("thinking_budget", self.thinking_budget)
+        if budget:
+            config["thinking_config"] = types.ThinkingConfig(
+                thinking_budget=budget
+            )
+        return config
+
+    def generate(self, prompt: str, **kwargs) -> str:
+        model = kwargs.get("model") or self.model
+
+        try:
+            generation_config = self._build_config(model, **kwargs)
+            response = self.client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=generation_config,
+            )
+            return self._extract_text(response)
+        except Exception as e:
+            if "thinking" in str(e).lower() and "thinking_config" in locals().get(
+                "generation_config", {}
+            ):
+                generation_config.pop("thinking_config", None)
+                response = self.client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=generation_config,
+                )
+                return self._extract_text(response)
+            logger.error(f"Gemini generation error: {e}")
+            raise
+
+    @staticmethod
+    def _extract_text(response) -> str:
+        text = getattr(response, "text", None)
+        if text:
+            return str(text).strip()
+
+        chunks: List[str] = []
+        for candidate in getattr(response, "candidates", None) or []:
+            content = getattr(candidate, "content", None)
+            for part in getattr(content, "parts", None) or []:
+                part_text = getattr(part, "text", None)
+                if part_text:
+                    chunks.append(str(part_text))
+        return "".join(chunks).strip()

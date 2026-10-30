@@ -2,20 +2,38 @@
 # Copy this file to config.yaml and update with your settings
 
 # AI Provider Settings
+#
+# Four providers: openai, openai_compatible, claude, ollama.
+# grok/mistral/openrouter/gemini/groq/lmstudio/litellm/requesty are now
+# openai_compatible with a base_url -- see that block below.
 ai_providers:
   openai:
-    enabled: true
+    enabled: false
     api_key: "sk-your-openai-api-key-here"
-    # Completion models: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, o1, o1-mini, o3-mini, o4-mini
+    # Models: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, o1, o1-mini, o3-mini, o4-mini
     model: "gpt-4o"
     temperature: 0.7
     max_tokens: 2000
     timeout: 60
-    # base_url: "https://api.openai.com/v1"   # optional; Azure/OpenAI-compatible proxies
+    # reasoning_effort: "medium"   # minimal|low|medium|high; reasoning models only
+    # base_url: "https://api.openai.com/v1"   # optional; Azure/OpenAI proxies
     # organization: ""
-  
+
+  # Any endpoint that speaks the OpenAI wire format: Azure, vLLM, LM Studio,
+  # OpenRouter, Groq, Mistral, xAI, LiteLLM proxies, self-hosted gateways.
+  openai_compatible:
+    enabled: false
+    api_key: "sk-your-key-here"
+    base_url: "http://localhost:1234/v1"
+    model: "local-model"
+    api_mode: "chat"          # chat (chat.completions) | responses (responses API)
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 60
+    # reasoning_effort: "medium"   # only sent to reasoning models / responses mode
+
   claude:
-    enabled: true
+    enabled: false
     api_key: "sk-ant-your-claude-api-key-here"
     # Messages API models: claude-sonnet-4-20250514, claude-3-7-sonnet-20250219,
     # claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022, claude-3-opus-20240229
@@ -23,73 +41,26 @@ ai_providers:
     temperature: 0.7
     max_tokens: 2000
     timeout: 60
+    # thinking_budget_tokens: 4000   # extended thinking; forces temperature=1
     # base_url: ""  # optional Anthropic-compatible proxy
-  
-  grok:
-    enabled: true
-    api_key: "xai-your-grok-api-key-here"
-    base_url: "https://api.x.ai/v1"
-    model: "grok-beta"
-    temperature: 0.7
-    max_tokens: 2000
-    timeout: 30
-  
+
   ollama:
     enabled: false
     base_url: "http://localhost:11434"
     model: "llama2"
     temperature: 0.7
     timeout: 60
-  
+    # think: true    # auto-detected for deepseek-r1, qwq, qwen3, phi4-reasoning
+
   gemini:
     enabled: false
     api_key: "your-gemini-api-key-here"
-    model: "gemini-1.5-flash"
-    temperature: 0.7
-    max_tokens: 2000
-    timeout: 30
-
-  openrouter:
-    enabled: false
-    api_key: "sk-or-v1-your-openrouter-api-key-here"
-    base_url: "https://openrouter.ai/api/v1"
-    model: "openai/gpt-4o"
-    temperature: 0.7
-    max_tokens: 2000
-    timeout: 30
-    site_url: "https://github.com/zakirkun/deep-eye"
-    site_name: "Deep Eye"
-
-  mistral:
-    enabled: false
-    api_key: "mistral-your-api-key-here"
-    model: ""
+    # Models: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash, gemini-1.5-pro
+    model: "gemini-2.0-flash"
     temperature: 0.7
     max_tokens: 2000
     timeout: 60
-
-  groq:
-    enabled: false
-    api_key: "your-groq-api-key-here"
-    base_url: "https://api.groq.com/openai/v1"
-    model: "mixtral-8x7b-32768"
-    temperature: 0.7
-    max_tokens: 2000
-    timeout: 30
-
-  lmstudio:
-    enabled: false
-    base_url: "http://127.0.0.1:1234"
-    model: "local-model"
-    temperature: 0.7
-    timeout: 60
-
-  litellm:
-    enabled: false
-    model: "gpt-4o"
-    temperature: 0.7
-    max_tokens: 2000
-    timeout: 60
+    # thinking_budget: "low"   # low|high; enables Gemini thinking
 
 # Scanner Settings
 scanner:

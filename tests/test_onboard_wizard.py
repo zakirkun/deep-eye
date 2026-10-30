@@ -61,7 +61,7 @@ def test_run_onboard_force_with_mocked_prompts(tmp_path, monkeypatch):
     path = tmp_path / "cfg.yaml"
     answers = iter(
         [
-            "5",  # ollama
+            "4",  # ollama (provider keys: 1 openai, 2 claude, 3 openai_compatible, 4 ollama)
             "http://localhost:11434",  # base url
             "llama2",  # model
             "n",  # no extra providers

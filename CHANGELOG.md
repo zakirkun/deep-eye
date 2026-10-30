@@ -5,6 +5,77 @@ All notable changes to Deep Eye will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - Platform Directories and Provider Gateway
+
+### Added
+
+#### Home-based configuration
+- Config and data now live in the per-user application directory:
+  Windows `%APPDATA%\deep-eye`, macOS `~/Library/Application Support/deep-eye`,
+  Linux `$XDG_DATA_HOME/deep-eye` (falling back to `~/.local/share/deep-eye`).
+- Override any root with `DEEP_EYE_HOME`, `DEEP_EYE_CONFIG_DIR`,
+  `DEEP_EYE_DATA_DIR`, or `DEEP_EYE_LOGS_DIR`.
+- First run migrates an existing `config/config.yaml` into the user config
+  directory. The destination is never overwritten, so a local checkout cannot
+  clobber your real settings.
+- `--config` still accepts any absolute path and always wins.
+- Reports stay relative to the working directory by design; scan output is
+  something you open next to the project you scanned.
+
+#### OpenAI-compatible provider
+- New `ai_providers.openai_compatible` block covers every OpenAI-protocol
+  endpoint (Azure, vLLM, LM Studio, OpenRouter, Groq, Mistral, xAI, LiteLLM
+  proxies, self-hosted gateways) from one config entry.
+- `api_mode: chat` (default) uses `chat.completions`; `api_mode: responses`
+  uses the newer `/v1/responses` API.
+
+#### Reasoning and thinking controls
+- `reasoning_effort` (minimal|low|medium|high) for OpenAI and OpenAI-compatible
+  reasoning models, and for any model in `responses` mode.
+- `thinking_budget_tokens` for Anthropic extended thinking. Enabling it forces
+  `temperature=1`, as the API requires.
+- Gemini `thinking_budget` (low|high) via `ThinkingConfig`.
+- Ollama `think` is auto-detected for reasoning-capable local models
+  (deepseek-r1, qwq, qwen3, phi4-reasoning, magistral).
+
+### Changed
+
+- **Breaking:** the provider list is now five entries — `openai`,
+  `openai_compatible`, `claude`, `gemini`, `ollama`. The following were removed:
+  `grok`, `mistral`, `openrouter`, `groq`, `lmstudio`, `litellm`, `requesty`.
+  Enabling any of them now logs an error naming the exact replacement.
+
+  | Removed | Replacement |
+  |---------|-------------|
+  | `grok` | `openai_compatible` + `base_url: https://api.x.ai/v1` |
+  | `mistral` | `openai_compatible` + `base_url: https://api.mistral.ai/v1` |
+  | `openrouter` | `openai_compatible` + `base_url: https://openrouter.ai/api/v1` |
+  | `groq` | `openai_compatible` + `base_url: https://api.groq.com/openai/v1` |
+  | `lmstudio` | `openai_compatible` + `base_url: http://localhost:1234/v1` |
+  | `litellm` | `openai_compatible` pointing at your proxy `base_url` |
+  | `requesty` | `openai_compatible` + `base_url: https://router.requesty.ai/v1` |
+
+  Note that `gemini` was briefly removed during this release and then restored
+  as a first-class provider, because Gemini does not speak the OpenAI protocol
+  natively and `google-genai` offers real thinking control.
+
+- `requirements.txt` drops `mistralai`, `litellm`, `google-generativeai`, and
+  adds `google-genai`. It also no longer ships the removed provider SDKs.
+
+### Removed
+
+- `ai_providers/{grok,mistral,openrouter,groq,lmstudio,litellm,requesty}_provider.py`
+- `tests/test_litellm_provider.py` and `tests/e2e_litellm.py`
+
+### Fixed
+
+- Ollama ignored the `system` parameter and prefixed prompts with a hardcoded
+  string. It now sends a proper `system` field.
+- Ollama timeouts and `max_tokens` are respected (`num_predict`).
+- Report paths, RAG index path, CVE database path, auth session store, and
+  checkpoint directory all resolve through `utils/paths.py` instead of being
+  hardcoded relative strings.
+
 ## [1.4] - Hanzou Development
 
 ### Added

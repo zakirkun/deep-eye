@@ -19,7 +19,10 @@ class AuthSessionStore:
         self.active_role = self.cfg.get("default_role") or (
             next(iter(self.roles), None)
         )
-        store_path = self.cfg.get("store_path", "data/auth_sessions.json")
+        store_path = self.cfg.get("store_path")
+        if not store_path:
+            from utils.paths import auth_sessions_path
+            store_path = str(auth_sessions_path())
         self.store_path = Path(store_path)
         if self.store_path.exists():
             try:
