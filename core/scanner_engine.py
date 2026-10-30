@@ -55,11 +55,13 @@ class ScannerEngine:
         self.verbose = verbose
         
         # Initialize components
+        self.scope_manager = ScopeManager(config)
         self.http_client = HTTPClient(
             proxy=proxy,
             custom_headers=custom_headers,
             cookies=cookies,
-            config=config
+            config=config,
+            scope_manager=self.scope_manager
         )
         
         self.vulnerability_scanner = VulnerabilityScanner(
@@ -105,7 +107,6 @@ class ScannerEngine:
             self.secrets_scanner = SecretsDetector(config)
             logger.info("Secrets scanner initialized")
 
-        self.scope_manager = ScopeManager(config)
         self.oast_server = None
         oast_cfg = config.get('oast', {})
         if oast_cfg.get('enabled', False):
@@ -246,39 +247,39 @@ class ScannerEngine:
             self.config.get('vulnerability_scanner', {}).get('enabled_checks', [])
         )
         testers = {}
-        mapping = {
-            'directory_bruteforce': (
-                'modules.directory_bruteforce.dirb_scanner',
-                'DirectoryBruteforcer',
-            ),
-            'port_scanner': (
-                'modules.port_scanner.scanner',
-                'PortScanner',
-            ),
-            'saml_attacks': (
-                'modules.saml_attacks.saml_tester',
-                'SAMLTester',
-            ),
-            'subdomain_takeover': (
-                'modules.subdomain_takeover.takeover_tester',
-                'SubdomainTakeoverTester',
-            ),
-            'cache_poisoning': (
-                'modules.cache_poisoning.cache_tester',
-                'CachePoisoningTester',
-            ),
-        }
-        for check_name, (mod_path, cls_name) in mapping.items():
-            if check_name not in checks:
+        from utils.check_registry import extra_specs, split_target
+        for spec in extra_specs():
+            if spec.name not in checks:
                 continue
             try:
                 import importlib
+                mod_path, cls_name = split_target(spec.target)
                 mod = importlib.import_module(mod_path)
                 cls = getattr(mod, cls_name)
-                testers[check_name] = cls(self.http_client, self.config)
+                testers[spec.name] = cls(self.http_client, self.config)
             except Exception as e:
-                logger.warning(f"Extra module {check_name} init failed: {e}")
+                logger.warning(f"Extra module {spec.name} init failed: {e}")
         return testers
+
+    def _resume_state(self) -> Optional[Dict]:
+        """Load a prior checkpoint when resuming is enabled and it is usable."""
+        if not self.config.get('scanner', {}).get('resume', False):
+            return None
+        self._resume_requested = True
+        checkpoint = self.state_manager.load_checkpoint()
+        if not checkpoint:
+            return None
+        scanned = checkpoint.get('urls_scanned') or []
+        if not isinstance(scanned, list) or not scanned:
+            return None
+        console.print(
+            f"[cyan]Resume:[/cyan] {len(scanned)} URLs already scanned, "
+            f"{len(checkpoint.get('vulnerabilities') or [])} findings restored"
+        )
+        return {
+            'urls_scanned': set(str(u) for u in scanned),
+            'vulnerabilities': checkpoint.get('vulnerabilities') or [],
+        }
 
     def _should_include_url(self, url: str) -> bool:
         """
@@ -617,7 +618,18 @@ class ScannerEngine:
         self.state_manager.set_phase(PentestPhase.VULNERABILITY_SCANNING)
         console.print("[bold blue]🔍 Starting vulnerability scanning...[/bold blue]")
         console.print(f"[dim]Phase: {self.state_manager.current_phase.value}[/dim]\n")
-        
+
+        resumed = self._resume_state()
+        if resumed:
+            urls = {u for u in urls if u not in resumed['urls_scanned']}
+            self.vulnerabilities = list(resumed.get('vulnerabilities') or [])
+            if not urls:
+                console.print(
+                    f"[yellow]Resume:[/yellow] all {len(resumed['urls_scanned'])} "
+                    f"URLs already scanned in the previous run"
+                )
+                return
+
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -767,16 +779,12 @@ class ScannerEngine:
                     "ai_manager": self.ai_manager,
                 }
                 mobile_findings = []
+                from utils.check_registry import MOBILE_NAMES
+                active_checks = set(self.vulnerability_scanner.enabled_checks)
                 for check_name, tester in getattr(self.vulnerability_scanner, "_feature_testers", []):
-                    if check_name not in (
-                        "frida_mobile",
-                        "android_static",
-                        "ios_plist",
-                        "mobile_ssl_pinning",
-                        "mobile_ai_chain",
-                    ):
+                    if check_name not in MOBILE_NAMES:
                         continue
-                    if check_name not in self.config.get("vulnerability_scanner", {}).get("enabled_checks", []):
+                    if check_name not in active_checks:
                         continue
                     try:
                         if check_name == "mobile_ai_chain":
@@ -856,6 +864,33 @@ class ScannerEngine:
                 results['severity_summary'] = self._calculate_severity_summary()
         except Exception as e:
             logger.debug(f"Dedupe skipped: {e}")
+
+        try:
+            from utils.oast_server import correlate
+            callbacks = self.oast_server.get_callbacks() if self.oast_server else []
+            if callbacks:
+                confirmed = correlate(self.vulnerabilities, callbacks)
+                results['oast_callbacks'] = callbacks
+                results['oast_confirmed'] = confirmed
+                if confirmed:
+                    results['severity_summary'] = self._calculate_severity_summary()
+                    logger.info(f"OAST confirmed {confirmed} blind finding(s)")
+        except Exception as e:
+            logger.debug(f"OAST correlation skipped: {e}")
+
+        try:
+            from utils.suppression import apply_suppressions
+            if self.config.get('reporting', {}).get('suppress', True):
+                kept, suppressed = apply_suppressions(self.vulnerabilities, self.config)
+                if suppressed:
+                    self.vulnerabilities = kept
+                    results['vulnerabilities'] = kept
+                    results['suppressed_count'] = len(suppressed)
+                    results['suppressed'] = suppressed
+                    results['severity_summary'] = self._calculate_severity_summary()
+                    logger.info(f"Suppressed {len(suppressed)} accepted finding(s)")
+        except Exception as e:
+            logger.debug(f"Suppression skipped: {e}")
 
         try:
             from modules.fp_replay import FPReplay
@@ -973,11 +1008,14 @@ class ScannerEngine:
                 logger.debug(f"Proxy shutdown: {e}")
 
         try:
-            self.state_manager.save_checkpoint(
-                urls_discovered=set(results.get('discovered_urls', [])),
-                urls_scanned=set(self.visited_urls),
-                vulnerabilities=self.vulnerabilities,
-            )
+            if getattr(self, '_resume_requested', False):
+                self.state_manager.clear_checkpoint()
+            else:
+                self.state_manager.save_checkpoint(
+                    urls_discovered=set(results.get('discovered_urls', [])),
+                    urls_scanned=set(self.visited_urls),
+                    vulnerabilities=self.vulnerabilities,
+                )
         except Exception as e:
             logger.debug(f"Checkpoint save skipped: {e}")
 

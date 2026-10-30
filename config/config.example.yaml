@@ -371,6 +371,8 @@ reporting:
     logo_path: "templates/logo.png"
     footer: "Confidential Security Assessment Report"
   dedupe: true  # fingerprint-collapse duplicate findings
+  suppress: true  # apply accepted-risk entries from suppress_file
+  suppress_file: ".deep-eye.ignore.yml"  # fingerprint -> reason/ticket/expires
 
 # OpenAPI / Swagger ingest (seed crawl queue)
 openapi:
@@ -562,7 +564,7 @@ oast:
   host: "0.0.0.0"
   port: 9999
 
-# Passive-only mode (no active payloads, read-only scanning)
+# Passive-only mode: GET/HEAD/OPTIONS only, state-changing checks stripped
 passive_mode: false
 
 # Experimental Features (v1.4.0+)

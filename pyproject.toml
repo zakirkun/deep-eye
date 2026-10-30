@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deep-eye"
+version = "1.5.0"
+description = "Advanced AI-Driven Penetration Testing Tool"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Deep Eye Security Team", email = "security@deepeye.io" }]
+keywords = ["security", "penetration-testing", "vulnerability-scanner", "ai", "pentesting"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dynamic = ["dependencies"]
+
+[project.scripts]
+deep-eye = "deep_eye:main"
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0.0"]
+xlsx = ["openpyxl>=3.1.0"]
+dev = ["pytest>=7.0.0", "pytest-cov>=4.0.0", "ruff>=0.1.0"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["core*", "modules*", "utils*", "ai_providers*", "proxy*", "mcp_server*"]
+exclude = ["tests*", "examples*", "scripts*", "reports*", "data*"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+exclude = [".git", ".deep-venv", "__pycache__", "reports", "data", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]

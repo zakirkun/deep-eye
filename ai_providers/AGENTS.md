@@ -1,65 +1,60 @@
 # AI PROVIDERS
 
 ## OVERVIEW
-Multi-vendor AI wrapper layer. Each backend implements `generate(prompt, **kwargs) -> str`. `AIProviderManager` selects the active provider from config and delegates all calls. OpenAI + Claude support multi-round tool calling.
+Multi-vendor AI wrapper layer, 13 modules + `__init__`. Each backend implements `generate(prompt, **kwargs) -> str`. `AIProviderManager` selects the active provider from config, retries it, then fails over across the rest. Only OpenAI and Claude implement real multi-round tool calling.
 
 ## STRUCTURE
 ```
 ai_providers/
-├── provider_manager.py    # AIProviderManager: init, set, generate, generate_with_tools
-├── tool_runtime.py        # ToolSpec, run_tool_loop, run_handlers
-├── openai_provider.py     # chat.completions + tools
-├── claude_provider.py     # Messages API + tool_use
-├── grok_provider.py
-├── ollama_provider.py
-├── gemini_provider.py
-├── groq_provider.py
-├── mistral_provider.py
-├── openrouter_provider.py
-├── litellm_provider.py
-└── lmstudio_provider.py
+├── provider_manager.py    # AIProviderManager: init, set_provider, generate, generate_with_tools
+├── tool_runtime.py        # ToolSpec, run_tool_loop, normalize_tools, run_handlers
+├── openai_provider.py     # 242 LOC — chat.completions + tools
+├── claude_provider.py     # 204 LOC — Messages API + tool_use
+├── gemini_provider.py     # 94
+├── openrouter_provider.py # 69
+├── requesty_provider.py   # 69 — NOT registered (see ANTI-PATTERNS)
+├── grok_provider.py       # 61
+├── groq_provider.py       # 53
+├── mistral_provider.py    # 53
+├── ollama_provider.py     # 53
+├── lmstudio_provider.py   # 52
+├── litellm_provider.py    # 51
+└── __init__.py
 ```
 
 ## WHERE TO LOOK
 | Task | File |
 |------|------|
-| Add a new vendor | New `*_provider.py` + `provider_manager._initialize_providers` + `config.example.yaml` |
-| Change active backend | `AIProviderManager.set_provider(name)` or config `ai_providers.<name>.enabled` |
+| Add a new vendor | New `*_provider.py` + register in `provider_manager._initialize_providers` (lines 28–120) + `config.example.yaml` |
+| Change active backend | `AIProviderManager.set_provider(name)` or config `scanner.ai_provider` |
+| Failover semantics | `provider_manager.generate()` (line ~140) |
+| Tool calling | `generate(..., tools=, handlers=)` or `generate_with_tools(...)` |
+| Provider/tool schema | `tool_runtime.ToolSpec`, `normalize_tools` |
 | Generate payloads / triage | Consumers call `ai_manager.generate(...)` |
-| Tool calling | `generate(..., tools=, handlers=)` or `generate_with_tools` |
-| Failover logic | `provider_manager.generate()` |
+
+## FAILOVER BEHAVIOUR (verified)
+- Active provider is retried `max_retries` times with exponential backoff (`2 ** attempt` seconds).
+- Empty/`None` responses count as failures, not successes.
+- On exhaustion it iterates every other provider in dict order; the first success **becomes** the new active provider for the rest of the process.
+- Total failure returns `""` — callers must not treat empty string as valid JSON. All AI consumers must degrade gracefully (triage, evidence, bounty, planner, payloads).
+- Context is fixed at construction from config; there is no hot reload.
 
 ## CONVENTIONS
-- Provider class name: `<Vendor>Provider`.
-- Required method: `generate(prompt: str, **kwargs) -> str`.
-- Optional: `generate_with_tools` for multi-round tools.
-- Shared: `tool_runtime.ToolSpec`, `run_tool_loop`.
-- Config gate: skip unless `ai_providers.<name>.enabled`.
-- API keys in `config.yaml` only.
-
-## TOOL CALLING
-```python
-from ai_providers.tool_runtime import ToolSpec
-
-tools = [ToolSpec("lookup_cve", "Lookup CVE", {
-    "type": "object",
-    "properties": {"cve_id": {"type": "string"}},
-    "required": ["cve_id"],
-})]
-handlers = {"lookup_cve": lambda cve_id: {"id": cve_id, "cvss": 9.8}}
-
-text = ai_manager.generate(prompt, tools=tools, handlers=handlers)
-# or: ai_manager.generate_with_tools(prompt, tools, handlers, max_rounds=5)
-```
+- Class name: `<Vendor>Provider`; required method `generate(prompt: str, **kwargs) -> str`.
+- Config gate: skip unless `ai_providers.<name>.enabled`; keys live in `config.yaml` only (gitignored).
+- Never hardcode model names — read from config.
+- Reuse `tool_runtime` instead of writing another tool loop.
 
 ## ANTI-PATTERNS
-- Do not call provider constructors outside `AIProviderManager`.
-- Do not add a provider without config example update.
-- Do not hardcode model names; read from config.
-- Do not reimplement tool loops outside `tool_runtime`.
+- Calling a provider constructor outside `AIProviderManager`.
+- Adding a provider without the `config.example.yaml` block (silently never initialised).
+- Assuming `requesty` works: `requesty_provider.py` exists and README advertises it, but `_initialize_providers` never instantiates it.
+- Treating `generate()` returning `""` as a model answer.
+- Reimplementing tool loops outside `tool_runtime`.
 
 ## NOTES
 - OpenAI: `tools` + `tool_calls`; o-series skips tools.
 - Claude: `tools` + `tool_use` / `tool_result` blocks.
 - Both reject placeholder API keys.
-- Tests: `tests/test_ai_tool_calling.py`, `tests/test_openai_claude_providers.py`.
+- Tests: `tests/test_ai_tool_calling.py`, `tests/test_openai_claude_providers.py`, `tests/test_litellm_provider.py`.
+

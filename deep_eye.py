@@ -154,6 +154,26 @@ Note: All scan options are configured in config.yaml
         help='With --setup, overwrite existing config without extra prompt default'
     )
 
+    parser.add_argument(
+        '--check-config',
+        action='store_true',
+        help='Validate config (check names, ranges) and exit without scanning'
+    )
+
+    parser.add_argument(
+        '--fail-on',
+        type=str,
+        default=None,
+        choices=['critical', 'high', 'medium', 'low', 'info'],
+        help='Exit non-zero when a finding at or above this severity exists'
+    )
+
+    parser.add_argument(
+        '--resume',
+        action='store_true',
+        help='Resume a previous scan from its checkpoint (skips scanned URLs)'
+    )
+
     return parser.parse_args()
 
 
@@ -188,6 +208,18 @@ def validate_config(config: Dict, target_url: str) -> bool:
         return False
     
     return True
+
+
+def _fail_on_exit_code(severity_counts: Dict, threshold: str) -> int:
+    """Return 1 when any finding meets or exceeds ``threshold``, else 0."""
+    order = ['info', 'low', 'medium', 'high', 'critical']
+    if threshold not in order:
+        return 0
+    floor = order.index(threshold)
+    for severity in order[floor:]:
+        if int(severity_counts.get(severity, 0) or 0) > 0:
+            return 1
+    return 0
 
 
 def _run_diff_mode(args) -> int:
@@ -267,6 +299,17 @@ def main():
             from utils.nl_scope import apply_nl_scope_to_config
             config = apply_nl_scope_to_config(config, args.scope_nl)
             console.print(f"[dim]NL scope applied: {args.scope_nl}[/dim]")
+
+        if getattr(args, 'check_config', False):
+            from utils.config_validator import validate_config as validate_checks
+            from utils.config_validator import format_report
+            report = validate_checks(config)
+            console.print(format_report(report, args.config))
+            return 0 if not report.errors else 1
+
+        if getattr(args, 'resume', False):
+            config.setdefault('scanner', {})['resume'] = True
+            console.print("[dim]Resume enabled: previously scanned URLs will be skipped[/dim]")
         
         # Get scanner config
         scanner_config = config.get('scanner', {})
@@ -454,7 +497,17 @@ def main():
                 console.print(f"  • CVE Intelligence: Technology-CVE matching enabled")
         
         console.print("\n[bold green]Scan completed successfully![/bold green] 🎉\n")
-        
+
+        exit_code = 0
+        if getattr(args, 'fail_on', None):
+            exit_code = _fail_on_exit_code(severity_counts, args.fail_on)
+            if exit_code:
+                console.print(
+                    f"[bold red]Gate failed:[/bold red] findings at or above "
+                    f"{args.fail_on} present"
+                )
+        return exit_code
+
     except KeyboardInterrupt:
         console.print("\n[bold yellow]Scan interrupted by user[/bold yellow]")
         sys.exit(0)
@@ -465,4 +518,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

@@ -27,10 +27,10 @@ templates/
 | Match logic | `matcher.py` | Types: `status`, `word`, `regex`, `size`, `dsl`. Condition: `and` / `or`. Part: `header`, `body`, `response`, `all` |
 | Execute | `executor.py` | `TemplateExecutor(http_client).run(template, target_url)` |
 | Var substitution | `executor.py` | `substitute_vars()` replaces `{{BaseURL}}`, `{{Hostname}}`, `{{RandomString}}` |
-| Tests | `tests/test_template_engine.py` | Parser, matcher, extractor, executor, loader, var substitution |
+| Tests | `tests/test_template_engine.py` | 250 LOC — parser, matcher, extractor, executor, loader, var substitution |
 
 ## CONVENTIONS
-- Template YAML lives under repo `templates/`, not inside this package.
+- Template YAML lives under repo `templates/`, not inside this package. The shipped catalog is **5 files**: `exposures/` (backup-file, env-file, git-config, swagger-ui) and `misconfig/` (cors-wildcard).
 - Config block: `templates.enabled`, `template_directories`, `tag_filters`, `severity_filter`.
 - Severity must be one of `critical`, `high`, `medium`, `low`, `info`.
 - Matchers array + `matchers-condition` (`and`/`or`). Extractors run only when matchers pass.
